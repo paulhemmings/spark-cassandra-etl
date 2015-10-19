@@ -34,14 +34,7 @@ public class LoadResource {
 
     private String handleLoadRequest(LoadProperties loadProperties) throws IOException {
         this.cassandraService.connect(loadProperties.getKeySpace(), loadProperties.getHostName());
-        this.fileService.loadData(loadProperties.getCsvFileName(), new FileService.FileServiceCaller() {
-            @Override
-            public String handleLine(String line) {
-                String[] values = line.split(",");
-                LoadResource.this.cassandraService.insert(loadProperties.getTableName(), loadProperties.getColumnArray(), values);
-                return null;
-            }
-        });
+        this.fileService.loadData(loadProperties.getCsvFileName(), line -> this.cassandraService.insert(loadProperties.getTableName(), loadProperties.getColumnArray(), line.split(",")));
         this.cassandraService.disconnect();
         return "success";
     }

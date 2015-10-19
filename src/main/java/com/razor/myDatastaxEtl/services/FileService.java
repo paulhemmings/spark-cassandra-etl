@@ -7,7 +7,7 @@ import java.io.IOException;
 public class FileService {
 
     public interface FileServiceCaller {
-        String handleLine(String line);
+        void handleLine(String line);
     }
 
     public void loadData(String fileName, FileServiceCaller fileServiceCaller) throws IOException {
