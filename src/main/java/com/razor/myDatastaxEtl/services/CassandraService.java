@@ -42,7 +42,7 @@ public class CassandraService {
         builder.append("(");
         builder.append(this.join(columns, false));
         builder.append(") VALUES (");
-        builder.append(this.join(values, true));
+        builder.append(this.join(values, false));
         builder.append(")");
         session.execute(builder.toString());
     }

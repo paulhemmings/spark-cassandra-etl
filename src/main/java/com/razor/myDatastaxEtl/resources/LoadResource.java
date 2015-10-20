@@ -33,7 +33,7 @@ public class LoadResource {
     }
 
     private String handleLoadRequest(LoadProperties loadProperties) throws IOException {
-        this.cassandraService.connect(loadProperties.getKeySpace(), loadProperties.getHostName());
+        this.cassandraService.connect(loadProperties.getHostName(), loadProperties.getKeySpace());
         this.fileService.loadData(loadProperties.getCsvFileName(), line -> this.cassandraService.insert(loadProperties.getTableName(), loadProperties.getColumnArray(), line.split(",")));
         this.cassandraService.disconnect();
         return "success";
