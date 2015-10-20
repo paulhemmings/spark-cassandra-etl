@@ -1,0 +1,7 @@
+{
+ hostName: "127.0.0.1",
+ keySpace: "flights",
+ tableName: "testnametable",
+ columns: [ "id", "firstname", "lastname", "title" ],
+csvFileName: "[full path]/spark-cassandra-etl/example/test-file.csv"
+}
