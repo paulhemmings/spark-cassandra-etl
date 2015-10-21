@@ -1,5 +1,10 @@
 ## Generic CSV file loader for Cassandra
 
+#### Prerequisites.
+
+* Requires a running instance of Cassandra
+* Requires Gradle
+
 #### How to use the application
 
 ##### Clone
@@ -44,3 +49,11 @@ csvFileName: "[full path]/spark-cassandra-etl/example/test-file.csv"
 Suggestion: Install Postman extension for chrome
 
 https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en
+
+#### Known limitations
+
+* The file has to be reachable by the server.
+* No logging.
+* No useful information returned from request.
+* No error handling.
+* Minimal unit testing.
