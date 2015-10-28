@@ -21,11 +21,16 @@ $ gradle wrapper
 $ ./gradlew clean build
 ````
 
-##### Run
+##### Run unit tests
+
+````
+$ ./gradlew test
+````
+
+##### Start web service
 
 ````
 $ ./gradlew run
-$ open http://localhost:4567
 ````
 
 ##### Use
@@ -34,15 +39,17 @@ Make a POST request to the following URL
 
 http://localhost:4567/load
 
-Example payload
+##### Example payload
+
+The column definition has two parts. First part is the name of the column in the destination table. Second part is if this column takes a value that is a string (or more specifically, requires the value to be in quotes).
 
 ````
 {
- hostName: "127.0.0.1",
- keySpace: "flights",
- tableName: "testnametable",
- columns: [ "id", "firstname", "lastname", "title" ],
-csvFileName: "[full path]/spark-cassandra-etl/example/test-file.csv"
+  hostName: "127.0.0.1",
+  keySpace: "flights",
+  tableName: "testnametable",
+  columnDefinitions: [ "id:false", "firstname:true", "lastname:true", "title:true" ],
+  csvFileName: "[full path]/spark-cassandra-etl/example/test-file.csv"
 }
 ````
 
@@ -56,4 +63,3 @@ https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddom
 * No logging.
 * No useful information returned from request.
 * No error handling.
-* Minimal unit testing.
