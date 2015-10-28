@@ -3,8 +3,11 @@ package com.razor.myDatastaxEtl.services;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static com.razor.myDatastaxEtl.models.LoadProperties.ColumnProperty;
 
 /**
  * Created by paulhemmings on 10/19/15.
@@ -13,43 +16,39 @@ import java.util.List;
 
 public class CassandraService {
 
-    private Cluster cluster;
     private Session session;
 
     public CassandraService() {
 
     }
 
-    public String join(Object[] columns, boolean quoteText) {
-        StringBuilder builder = new StringBuilder();
-        for (Object column : columns) {
-            if (builder.length() > 0) {
-                builder.append(", ");
-            }
-            String value = String.valueOf(column);
-            if (column instanceof String && quoteText) {
-                value = String.format("'%s'", column);
-            }
-            builder.append(value);
-        }
-        return builder.toString();
+    public String quoteColumn(String value, boolean quoteIt) {
+        return quoteIt ? "'" + value + "'" : value;
     }
 
-    public void insert(String table, Object[] columns, Object[] values) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("INSERT INTO ");
-        builder.append(table);
-        builder.append("(");
-        builder.append(this.join(columns, false));
-        builder.append(") VALUES (");
-        builder.append(this.join(values, false));
-        builder.append(")");
-        session.execute(builder.toString());
+    public String buildHeader(List<ColumnProperty> columns) {
+        return columns.stream()
+                .map(ColumnProperty::getColumnName)
+                .collect(Collectors.joining(","));
+    }
+
+    public String buildValues(List<ColumnProperty> columns, List<String> values) {
+        return IntStream.range(0, columns.size())
+                    .mapToObj(index -> this.quoteColumn(values.get(index), columns.get(index).isColumnQuoted()))
+                    .collect(Collectors.joining(","));
+    }
+
+    public String buildCql(String table, List<ColumnProperty> columns, List<String> values) {
+        return "INSERT INTO " + table + " (" + this.buildHeader(columns) + ") VALUES (" + this.buildValues(columns, values) + ")";
+    }
+
+
+    public void insert(String cql) {
+        this.session.execute(cql);
     }
 
     public void connect(String host, String keySpace) {
-        this.cluster = Cluster.builder().addContactPoint(host).build();
-        this.session = this.cluster.connect(keySpace);
+        this.session = Cluster.builder().addContactPoint(host).build().connect(keySpace);
     }
 
     public void disconnect() {
