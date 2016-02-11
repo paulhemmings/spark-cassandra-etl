@@ -1,13 +1,13 @@
 package com.razor.myDatastaxEtl.services
 
 import org.apache.solr.client.solrj.SolrClient
+import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.response.FacetField
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
-import org.apache.solr.common.params.SolrParams
+import org.apache.solr.common.SolrInputDocument
 import spock.lang.Specification
-
 /**
  * Created by paul.hemmings on 2/11/16.
  */
@@ -47,13 +47,13 @@ class SolrServiceSpec extends Specification {
             def solrService = Spy(SolrService)
             def solrClient = Mock(SolrClient)
             def queryResponse = Mock(QueryResponse)
-            def solParams = Mock(SolrParams)
+            def solrQuery = Mock(SolrQuery)
             def facetField = Mock(FacetField)
 
             def solrDocumentList = new SolrDocumentList()
             def solrDocument = new SolrDocument()
 
-            solrClient.query(solParams) >> queryResponse
+            solrClient.query(solrQuery) >> queryResponse
             queryResponse.getResults() >> solrDocumentList
             queryResponse.getFacetFields() >> [facetField]
             facetField.getName() >> "facet-name"
@@ -63,7 +63,7 @@ class SolrServiceSpec extends Specification {
             solrDocumentList.add(solrDocument)
 
         when:
-            def solrResponse = solrService.query(solrClient, solParams)
+            def solrResponse = solrService.query(solrClient, solrQuery)
 
         then:
             solrResponse.getResults().isPresent()
@@ -74,17 +74,19 @@ class SolrServiceSpec extends Specification {
 
             solrResponse.getResults().get().size() == 1
             solrResponse.getResults().get().get(0).containsKey("test")
-            solrResponse.getResults().get().get(0).get("test") == "value"
+            solrResponse.getResults().get().get(0).get("test") == ["value"]
     }
 
     def "it should load a document into the SOLR instance using SOLR client API"() {
         given:
             def solrService = Spy(SolrService)
             def solrClient = Mock(SolrClient)
-            def solrDocument = Mock(SolrDocument)
+            def solrInputDocument = Mock(SolrInputDocument)
         when:
-            solrService.load(solrClient, solrDocument)
+            solrService.load(solrClient, solrInputDocument)
         then:
+            1 * solrClient.add(solrInputDocument)
+            1 * solrClient.commit()
             noExceptionThrown()
     }
 

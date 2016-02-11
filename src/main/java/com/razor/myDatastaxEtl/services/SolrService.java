@@ -1,15 +1,17 @@
 package com.razor.myDatastaxEtl.services;
 
-import com.razor.myDatastaxEtl.models.SolrResponse;
+import com.razor.myDatastaxEtl.models.SearchResponse;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -23,22 +25,29 @@ public class SolrService {
 
     /**
      *
-     * @param solrParams
+     * @param solrQuery
      * @return
      * @throws IOException
      * @throws SolrServerException
      */
 
-    public SolrResponse query(SolrClient solrClient, SolrParams solrParams) throws IOException, SolrServerException {
+    public SearchResponse query(SolrClient solrClient, SolrQuery solrQuery) throws IOException, SolrServerException {
 
-        SolrResponse solrResponse = new SolrResponse();
-        QueryResponse queryResponse = solrClient.query(solrParams);
+        SearchResponse solrResponse = new SearchResponse();
+        org.apache.solr.client.solrj.response.QueryResponse queryResponse = solrClient.query(solrQuery);
 
         solrResponse.setResults(
             queryResponse.getResults()
                 .stream()
                 .filter(document -> !Objects.isNull(document.getFieldValueMap()))
-                .map(SolrDocument::getFieldValueMap)
+                .map(document -> {
+                    Collection<String> names = document.getFieldNames();
+                    HashMap<String, Object> map = new HashMap<>();
+                    names.forEach(name -> {
+                        map.put(name, document.getFieldValues(name));
+                    });
+                    return map;
+                })
                 .collect(Collectors.toList())
         );
 
@@ -57,7 +66,9 @@ public class SolrService {
      * @return
      */
 
-    public SolrService load(SolrClient solrClient, SolrDocument solrDocument) {
+    public SolrService load(SolrClient solrClient, SolrInputDocument solrDocument) throws IOException, SolrServerException {
+        solrClient.add(solrDocument);
+        solrClient.commit();
         return this;
     }
 

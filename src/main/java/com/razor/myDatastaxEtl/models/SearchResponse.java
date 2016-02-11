@@ -8,7 +8,7 @@ import java.util.Optional;
  * Created by paul.hemmings on 2/11/16.
  */
 
-public class SolrResponse {
+public class SearchResponse {
 
     private Optional<List<Map<String, Object>>> results;
     private Optional<Map<String, Integer>> facets;

@@ -23,15 +23,32 @@ public class LoadResource {
         setupEndpoints();
     }
 
+    /**
+     * Sets up the service end points
+     */
+
     private void setupEndpoints() {
         post("/load", "application/json", (request, response) -> {
             return this.handleLoadRequest(this.buildLoadProperties(request));
         }, json());
     }
 
+    /**
+     * Builds a LoadProperties model from the request body
+     * @param request
+     * @return
+     */
+
     private LoadProperties buildLoadProperties(Request request) {
         return new Gson().fromJson(request.body(), LoadProperties.class);
     }
+
+    /**
+     * Handles the Load request.
+     * @param loadProperties
+     * @return
+     * @throws IOException
+     */
 
     private String handleLoadRequest(LoadProperties loadProperties) throws IOException {
         this.cassandraService.connect(loadProperties.getHostName(), loadProperties.getKeySpace());

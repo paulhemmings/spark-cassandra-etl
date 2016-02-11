@@ -11,3 +11,7 @@ gradlew.bat
 *.jar
 *.war
 *.ear
+
+# IntelliJ
+.idea/
+spark-cassandra-etl.iml
