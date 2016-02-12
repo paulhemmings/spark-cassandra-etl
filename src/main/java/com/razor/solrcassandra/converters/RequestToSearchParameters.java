@@ -25,7 +25,7 @@ public class RequestToSearchParameters {
     public SearchParameters convert(Request request) {
         return orElse(convert(getQueryValue(request, "jq")), new SearchParameters()
             .setQuery(this.getQueryValue(request, "q"))
-            .setFilterQueries(this.getQueryValue(request, "fq").split(","))
+            .setFilterQueries(orEmpty(this.getQueryValue(request, "fq")).split(","))
             .setEndDate(this.getQueryValue(request, "endDate"))
             .setFacetLimit(this.getQueryValue(request, "facetLimit"))
             .setFacets(orEmpty(this.getQueryValue(request, "facets")).split(","))

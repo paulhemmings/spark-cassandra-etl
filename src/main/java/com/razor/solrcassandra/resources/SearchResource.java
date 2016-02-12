@@ -12,6 +12,7 @@ import spark.Response;
 
 import java.io.IOException;
 
+import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 import static spark.Spark.get;
 
 /**
@@ -29,11 +30,17 @@ public class SearchResource {
 
     /**
      * Sets up the service end points
+     *
+     * /search
+     *   Accepts JSON
+     *     http://localhost:4567/search/books-core?jq={%27cat%27:[%27book%27]}
+     *   Or individual parameters
+     *     http://localhost:4567/search/books-core?q=*:*&facets=cat,name,genre_s
+     *
      */
 
     private void setupEndpoints() {
-        // http://localhost:4567/search?core=books-core&q={%27cat%27:[%27book%27]}
-        get("/search", "application/json", this::handleSearchRequest, JsonUtil::toJson); //  json()
+        get("/search/:core", "application/json", this::handleSearchRequest, JsonUtil::toJson);
     }
 
     /**
@@ -61,10 +68,7 @@ public class SearchResource {
      */
 
     private String getCore(Request request) {
-        if (!request.queryParams().contains("core")) {
-            return "master";
-        }
-        return request.queryMap("core").value();
+        return orElse(request.params(":core"), "master");
     }
 
 }
