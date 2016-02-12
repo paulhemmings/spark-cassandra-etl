@@ -1,13 +1,15 @@
 package com.razor.myDatastaxEtl.services;
 
+import com.google.gson.Gson;
+import com.razor.myDatastaxEtl.models.SearchRequest;
 import com.razor.myDatastaxEtl.models.SearchResponse;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import spark.Request;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -41,11 +43,8 @@ public class SolrService {
                 .stream()
                 .filter(document -> !Objects.isNull(document.getFieldValueMap()))
                 .map(document -> {
-                    Collection<String> names = document.getFieldNames();
                     HashMap<String, Object> map = new HashMap<>();
-                    names.forEach(name -> {
-                        map.put(name, document.getFieldValues(name));
-                    });
+                    document.getFieldNames().forEach(name -> map.put(name, document.getFieldValues(name)));
                     return map;
                 })
                 .collect(Collectors.toList())
@@ -77,7 +76,7 @@ public class SolrService {
         return SERVER_URL;
     }
 
-    public String getCoreUrl(String core) {
+    public String getFullUrl(String core) {
         return String.format("%s/%s", this.getServerUrl(), core);
     }
 

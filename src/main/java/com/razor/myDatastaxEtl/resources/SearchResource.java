@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.razor.myDatastaxEtl.models.SearchRequest;
 import com.razor.myDatastaxEtl.models.SearchResponse;
 import com.razor.myDatastaxEtl.services.SolrService;
+import com.razor.myDatastaxEtl.utilities.JsonUtil;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import spark.Request;
+import spark.Response;
 
 import java.io.IOException;
 
@@ -32,13 +34,8 @@ public class SearchResource {
      */
 
     private void setupEndpoints() {
-
         // http://localhost:4567/search?core=books-core&q={%27cat%27:[%27book%27]}
-
-        get("/search", (request, response) -> {
-            return this.handleQueryRequest(getCore(request), this.buildSearchQuery(request));
-        }, json());
-
+        get("/search", "application/json", this::handleSearchRequest, JsonUtil::toJson); //  json()
     }
 
     /**
@@ -55,6 +52,24 @@ public class SearchResource {
     }
 
     /**
+     * Handle the Search Request
+     * @param request
+     * @param response
+     * @return SearchResponse
+     * @throws IOException
+     * @throws SolrServerException
+     */
+
+    private SearchResponse handleSearchRequest(Request request, Response response) throws IOException, SolrServerException {
+        String core = getCore(request);
+        SolrQuery solrQuery = this.buildSearchQuery(request);
+        SolrClient solrClient = this.solrService.buildSolrClient(this.solrService.getFullUrl(core));
+        SearchResponse solrResponse = this.solrService.query(solrClient, solrQuery);
+        solrClient.close();
+        return solrResponse;
+    }
+
+    /**
      * Build a SolrQuery object from the query parameters (q)
      * @param request
      * @return
@@ -65,25 +80,9 @@ public class SearchResource {
         solrQuery.setFacet(true);
         solrQuery.setFacetLimit(1000);
         solrQuery.set("q","*:*");
-        solrQuery.set("fl", "name"); // obviously not generic!!
         SearchRequest searchRequest = new Gson().fromJson(request.queryMap("q").value(), SearchRequest.class);
         searchRequest.keySet().stream().forEach(key -> solrQuery.addFilterQuery(key + ":" + searchRequest.valueList(key)));
         return solrQuery;
-    }
-
-    /**
-     * Returns SearchResponse object inflated from querying SOLR
-     * @param solrQuery
-     * @return
-     * @throws IOException
-     * @throws SolrServerException
-     */
-
-    private SearchResponse handleQueryRequest(String core, SolrQuery solrQuery) throws IOException, SolrServerException {
-        SolrClient solrClient = this.solrService.buildSolrClient(this.solrService.getCoreUrl(core));
-        SearchResponse solrResponse = this.solrService.query(solrClient, solrQuery);
-        solrClient.close();
-        return solrResponse;
     }
 
 }

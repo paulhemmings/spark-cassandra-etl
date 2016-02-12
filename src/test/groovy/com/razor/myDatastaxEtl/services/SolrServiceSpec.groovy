@@ -28,7 +28,7 @@ class SolrServiceSpec extends Specification {
             def solrService = Spy(SolrService)
             solrService.getServerUrl() >> "test-url"
         when:
-            def url = solrService.getCoreUrl("books-core")
+            def url = solrService.getFullUrl("books-core")
         then:
             url == "test-url/books-core"
     }

@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.razor.myDatastaxEtl.models.LoadProperties;
 import com.razor.myDatastaxEtl.services.CassandraService;
 import com.razor.myDatastaxEtl.services.FileService;
+import com.razor.myDatastaxEtl.utilities.JsonUtil;
 import spark.Request;
+import spark.Response;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,9 +30,7 @@ public class LoadResource {
      */
 
     private void setupEndpoints() {
-        post("/load", "application/json", (request, response) -> {
-            return this.handleLoadRequest(this.buildLoadProperties(request));
-        }, json());
+        post("/load", "application/json", this::handleLoadRequest, JsonUtil::toJson);
     }
 
     /**
@@ -44,13 +44,15 @@ public class LoadResource {
     }
 
     /**
-     * Handles the Load request.
-     * @param loadProperties
-     * @return
+     * Handle load request
+     * @param request
+     * @param response
+     * @return success/failure message
      * @throws IOException
      */
 
-    private String handleLoadRequest(LoadProperties loadProperties) throws IOException {
+    private String handleLoadRequest(Request request, Response response) throws IOException {
+        LoadProperties loadProperties = this.buildLoadProperties(request);
         this.cassandraService.connect(loadProperties.getHostName(), loadProperties.getKeySpace());
         this.fileService.loadData(loadProperties.getCsvFileName(), line -> {
             String cql = this.cassandraService.buildCql(
