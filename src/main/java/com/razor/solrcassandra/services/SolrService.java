@@ -1,7 +1,6 @@
 package com.razor.solrcassandra.services;
 
-import com.google.gson.Gson;
-import com.razor.solrcassandra.models.SearchRequest;
+import com.razor.solrcassandra.models.SearchParameters;
 import com.razor.solrcassandra.models.SearchResponse;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -9,13 +8,14 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrInputDocument;
-import spark.Request;
+import spark.utils.StringUtils;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 
 /**
  * Created by paul.hemmings on 2/11/16.
@@ -26,16 +26,39 @@ public class SolrService {
     private static String SERVER_URL = "http://localhost:8983/solr";
 
     /**
-     *
-     * @param solrQuery
+     * Build SolrQuery from the generic search parameters
+     * Set the default values here
+     * @param searchParameters
+     * @return
+     */
+
+    protected SolrQuery buildSearchQuery(SearchParameters searchParameters) {
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setFacet(true);
+        solrQuery.setFacetLimit(Integer.valueOf(orElse(searchParameters.getFacetLimit(), "100")));
+        solrQuery.setRows(Integer.valueOf(orElse(searchParameters.getRows(), "40")));
+        solrQuery.set("q", orElse(searchParameters.getQuery(), "*:*"));
+        searchParameters.getFilterQueries().stream().forEach(solrQuery::addFilterQuery);
+        searchParameters.getFacets().stream().forEach(solrQuery::addFacetField);
+        if (StringUtils.isNotEmpty(searchParameters.getSort())) {
+            solrQuery.setSort(searchParameters.getSort(), searchParameters.getOrder().equals(SearchParameters.ASC) ? SolrQuery.ORDER.asc : SolrQuery.ORDER.desc);
+        }
+        return solrQuery;
+    }
+
+    /**
+     * Build a generic SearchResponse from the Solr response
+     * @param solrClient
+     * @param searchParameters
      * @return
      * @throws IOException
      * @throws SolrServerException
      */
 
-    public SearchResponse query(SolrClient solrClient, SolrQuery solrQuery) throws IOException, SolrServerException {
+    public SearchResponse query(SolrClient solrClient, SearchParameters searchParameters) throws IOException, SolrServerException {
 
         SearchResponse solrResponse = new SearchResponse();
+        SolrQuery solrQuery = this.buildSearchQuery(searchParameters);
         org.apache.solr.client.solrj.response.QueryResponse queryResponse = solrClient.query(solrQuery);
 
         solrResponse.setResults(

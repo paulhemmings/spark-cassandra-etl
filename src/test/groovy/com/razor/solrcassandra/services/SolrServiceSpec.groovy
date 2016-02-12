@@ -1,5 +1,6 @@
 package com.razor.solrcassandra.services
 
+import com.razor.solrcassandra.models.SearchParameters
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.response.FacetField
@@ -47,12 +48,14 @@ class SolrServiceSpec extends Specification {
             def solrService = Spy(SolrService)
             def solrClient = Mock(SolrClient)
             def queryResponse = Mock(QueryResponse)
+            def searchParameters = Mock(SearchParameters)
             def solrQuery = Mock(SolrQuery)
             def facetField = Mock(FacetField)
 
             def solrDocumentList = new SolrDocumentList()
             def solrDocument = new SolrDocument()
 
+            solrService.buildSearchQuery(searchParameters) >> solrQuery
             solrClient.query(solrQuery) >> queryResponse
             queryResponse.getResults() >> solrDocumentList
             queryResponse.getFacetFields() >> [facetField]
@@ -63,7 +66,7 @@ class SolrServiceSpec extends Specification {
             solrDocumentList.add(solrDocument)
 
         when:
-            def solrResponse = solrService.query(solrClient, solrQuery)
+            def solrResponse = solrService.query(solrClient, searchParameters)
 
         then:
             solrResponse.getResults().isPresent()
