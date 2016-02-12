@@ -11,13 +11,18 @@ import spark.Response;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static com.razor.solrcassandra.utilities.JsonUtil.json;
-import static spark.Spark.*;
+import static spark.Spark.post;
 
-public class LoadResource {
+public class LoadResource extends BaseResource {
 
     private FileService fileService;
     private CassandraService cassandraService;
+
+    /**
+     * Constructor - inject all dependencies
+     * @param fileService
+     * @param cassandraService
+     */
 
     public LoadResource(FileService fileService, CassandraService cassandraService) {
         this.fileService = fileService;

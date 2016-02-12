@@ -1,6 +1,8 @@
 package com.razor.solrcassandra.services
 
+import com.razor.solrcassandra.converters.QueryResponseToSearchResponse
 import com.razor.solrcassandra.models.SearchParameters
+import com.razor.solrcassandra.models.SearchResponse
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.response.FacetField
@@ -49,35 +51,19 @@ class SolrServiceSpec extends Specification {
             def solrClient = Mock(SolrClient)
             def queryResponse = Mock(QueryResponse)
             def searchParameters = Mock(SearchParameters)
+            def searchResponse = Mock(SearchResponse)
             def solrQuery = Mock(SolrQuery)
-            def facetField = Mock(FacetField)
-
-            def solrDocumentList = new SolrDocumentList()
-            def solrDocument = new SolrDocument()
-
-            solrService.buildSearchQuery(searchParameters) >> solrQuery
-            solrClient.query(solrQuery) >> queryResponse
-            queryResponse.getResults() >> solrDocumentList
-            queryResponse.getFacetFields() >> [facetField]
-            facetField.getName() >> "facet-name"
-            facetField.getValueCount() >> 20
-
-            solrDocument.addField("test", "value")
-            solrDocumentList.add(solrDocument)
+            def queryResponseConverter = Mock(QueryResponseToSearchResponse)
 
         when:
-            def solrResponse = solrService.query(solrClient, searchParameters)
+            def response = solrService.query(solrClient, searchParameters)
 
         then:
-            solrResponse.getResults().isPresent()
-            solrResponse.getFacets().isPresent()
-
-            solrResponse.getFacets().get().containsKey("facet-name")
-            solrResponse.getFacets().get().get("facet-name") == 20
-
-            solrResponse.getResults().get().size() == 1
-            solrResponse.getResults().get().get(0).containsKey("test")
-            solrResponse.getResults().get().get(0).get("test") == ["value"]
+            response == searchResponse
+            1 * solrService.buildSearchQuery(searchParameters) >> solrQuery
+            1 * solrClient.query(solrQuery) >> queryResponse
+            1 * solrService.buildQueryResponseConverterInstance() >> queryResponseConverter
+            1 * queryResponseConverter.convert(queryResponse) >> searchResponse
     }
 
     def "it should load a document into the SOLR instance using SOLR client API"() {

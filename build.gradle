@@ -2,6 +2,7 @@ apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'application'
+apply plugin: 'net.saliman.cobertura'
 
 /* define main class */
 
@@ -11,6 +12,18 @@ mainClassName = 'com.razor.solrcassandra.EntryPoint'
 
 repositories {
     mavenCentral()
+}
+
+/* build script dependencies */
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "net.saliman:gradle-cobertura-plugin:2.3.0"
+    }
 }
 
 /* provide dependencies */
@@ -49,4 +62,10 @@ jar {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.3'
+}
+
+/* cobertura output folder */
+
+cobertura {
+    coverageReportDir= file('coverage')
 }

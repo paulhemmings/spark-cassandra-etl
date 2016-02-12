@@ -1,19 +1,16 @@
 package com.razor.solrcassandra.services;
 
+import com.razor.solrcassandra.converters.QueryResponseToSearchResponse;
 import com.razor.solrcassandra.models.SearchParameters;
 import com.razor.solrcassandra.models.SearchResponse;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrInputDocument;
 import spark.utils.StringUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 
@@ -56,36 +53,18 @@ public class SolrService {
      */
 
     public SearchResponse query(SolrClient solrClient, SearchParameters searchParameters) throws IOException, SolrServerException {
-
-        SearchResponse solrResponse = new SearchResponse();
         SolrQuery solrQuery = this.buildSearchQuery(searchParameters);
         org.apache.solr.client.solrj.response.QueryResponse queryResponse = solrClient.query(solrQuery);
-
-        solrResponse.setResults(
-            queryResponse.getResults()
-                .stream()
-                .filter(document -> !Objects.isNull(document.getFieldValueMap()))
-                .map(document -> {
-                    HashMap<String, Object> map = new HashMap<>();
-                    document.getFieldNames().forEach(name -> map.put(name, document.getFieldValues(name)));
-                    return map;
-                })
-                .collect(Collectors.toList())
-        );
-
-        solrResponse.setFacets(
-            queryResponse.getFacetFields()
-                .stream()
-                .collect(Collectors.toMap(FacetField::getName, FacetField::getValueCount))
-        );
-
-        return solrResponse;
+        return this.buildQueryResponseConverterInstance().convert(queryResponse);
     }
 
     /**
      *
+     * @param solrClient
      * @param solrDocument
      * @return
+     * @throws IOException
+     * @throws SolrServerException
      */
 
     public SolrService load(SolrClient solrClient, SolrInputDocument solrDocument) throws IOException, SolrServerException {
@@ -105,6 +84,10 @@ public class SolrService {
 
     public SolrClient buildSolrClient(String coreUrl) {
         return new HttpSolrClient(coreUrl);
+    }
+
+    public QueryResponseToSearchResponse buildQueryResponseConverterInstance() {
+        return new QueryResponseToSearchResponse();
     }
 
 }

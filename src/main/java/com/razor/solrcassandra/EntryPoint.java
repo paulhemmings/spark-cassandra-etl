@@ -6,8 +6,6 @@ import com.razor.solrcassandra.services.CassandraService;
 import com.razor.solrcassandra.services.FileService;
 import com.razor.solrcassandra.services.SolrService;
 
-import static spark.Spark.get;
-
 public class EntryPoint {
 
     public static void main(String[] args) {

@@ -19,9 +19,14 @@ import static spark.Spark.get;
  * Created by paul.hemmings on 2/11/16.
  */
 
-public class SearchResource {
+public class SearchResource extends BaseResource {
 
     private SolrService solrService;
+
+    /**
+     * Constructor - inject dependencies
+     * @param solrService
+     */
 
     public SearchResource(SolrService solrService) {
         this.solrService = solrService;
@@ -53,22 +58,13 @@ public class SearchResource {
      */
 
     private SearchResponse handleSearchRequest(Request request, Response response) throws IOException, SolrServerException {
-        String core = getCore(request);
+        response.type("application/json");
+        String core = orElse(request.params(":core"), "master");
         SearchParameters searchParameters = new RequestToSearchParameters().convert(request);
         SolrClient solrClient = this.solrService.buildSolrClient(this.solrService.getFullUrl(core));
         SearchResponse solrResponse = this.solrService.query(solrClient, searchParameters);
         solrClient.close();
         return solrResponse;
-    }
-
-    /**
-     * Returns the name of the specified SOLR core - defaults to "master" if none provided
-     * @param request
-     * @return
-     */
-
-    private String getCore(Request request) {
-        return orElse(request.params(":core"), "master");
     }
 
 }
