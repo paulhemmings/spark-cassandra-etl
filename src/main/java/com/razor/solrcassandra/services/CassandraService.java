@@ -2,6 +2,7 @@ package com.razor.solrcassandra.services;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.razor.solrcassandra.models.LoadDocument;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,8 +39,14 @@ public class CassandraService {
                     .collect(Collectors.joining(","));
     }
 
-    public String buildCql(String table, List<ColumnProperty> columns, List<String> values) {
-        return "INSERT INTO " + table + " (" + this.buildHeader(columns) + ") VALUES (" + this.buildValues(columns, values) + ")";
+    public String buildCql(LoadDocument loadDocument) {
+        return "INSERT INTO "
+                + loadDocument.getName()
+                + " ("
+                + this.buildHeader(loadDocument.getColumns())
+                + ") VALUES ("
+                + this.buildValues(loadDocument.getColumns(), loadDocument.getValues())
+                + ")";
     }
 
 

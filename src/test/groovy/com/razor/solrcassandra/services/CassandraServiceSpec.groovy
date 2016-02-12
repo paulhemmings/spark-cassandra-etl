@@ -1,5 +1,6 @@
 package com.razor.solrcassandra.services
 
+import com.razor.solrcassandra.models.LoadDocument
 import com.razor.solrcassandra.models.LoadProperties
 import spock.lang.Specification
 
@@ -39,11 +40,14 @@ class CassandraServiceSpec extends Specification {
         given:
             def cassandraService = Spy(CassandraService)
             def columnOne = Mock(LoadProperties.ColumnProperty);
+            def loadDocument = new LoadDocument().setColumns([columnOne, columnOne]).setName("table").setValues(["one", "two"]);
+
         when:
             columnOne.getColumnName() >> "column"
             columnOne.isColumnQuoted() >> true
+
         then:
-            cassandraService.buildCql("table", [columnOne, columnOne], ["one", "two"]) == "INSERT INTO table (column,column) VALUES ('one','two')";
+            cassandraService.buildCql(loadDocument) == "INSERT INTO table (column,column) VALUES ('one','two')";
     }
 
 }

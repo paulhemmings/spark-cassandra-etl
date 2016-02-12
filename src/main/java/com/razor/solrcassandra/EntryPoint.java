@@ -8,9 +8,23 @@ import com.razor.solrcassandra.services.SolrService;
 
 public class EntryPoint {
 
+    /**
+     * Entry Point
+     * @param args
+     */
+
     public static void main(String[] args) {
-        new LoadResource(new FileService(), new CassandraService());
-        new SearchResource(new SolrService());
+
+        // create the services
+
+        SolrService solrService = new SolrService();
+        FileService fileService = new FileService();
+        CassandraService cassandraService = new CassandraService();
+
+        // create the resources (API service endpoints)
+
+        new LoadResource(fileService, cassandraService, solrService);
+        new SearchResource(solrService);
     }
 
 }

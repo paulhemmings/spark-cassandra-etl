@@ -1,6 +1,9 @@
 package com.razor.solrcassandra.services;
 
+import com.razor.solrcassandra.converters.LoadDocumentToSolrInputDocument;
 import com.razor.solrcassandra.converters.QueryResponseToSearchResponse;
+import com.razor.solrcassandra.models.LoadDocument;
+import com.razor.solrcassandra.models.LoadResponse;
 import com.razor.solrcassandra.models.SearchParameters;
 import com.razor.solrcassandra.models.SearchResponse;
 import org.apache.solr.client.solrj.SolrClient;
@@ -59,20 +62,20 @@ public class SolrService {
     }
 
     /**
-     *
+     * Load a generic LoadDocument object into the SOLR instance.
      * @param solrClient
-     * @param solrDocument
-     * @return
+     * @param loadDocument
+     * @return LoadResponse
      * @throws IOException
      * @throws SolrServerException
      */
 
-    public SolrService load(SolrClient solrClient, SolrInputDocument solrDocument) throws IOException, SolrServerException {
-        solrClient.add(solrDocument);
+    public LoadResponse load(SolrClient solrClient, LoadDocument loadDocument) throws IOException, SolrServerException {
+        SolrInputDocument solrInputDocument = this.buildLoadDocumentConverterInstance().convert(loadDocument);
+        solrClient.add(solrInputDocument);
         solrClient.commit();
-        return this;
+        return new LoadResponse();
     }
-
 
     public String getServerUrl() {
         return SERVER_URL;
@@ -88,6 +91,10 @@ public class SolrService {
 
     public QueryResponseToSearchResponse buildQueryResponseConverterInstance() {
         return new QueryResponseToSearchResponse();
+    }
+
+    public LoadDocumentToSolrInputDocument buildLoadDocumentConverterInstance() {
+        return new LoadDocumentToSolrInputDocument();
     }
 
 }

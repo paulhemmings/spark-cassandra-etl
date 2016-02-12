@@ -13,23 +13,28 @@ public class LoadProperties {
     private String keySpace;
 
     private String tableName;
+    private String solrCore;
     private List<String> columnDefinitions;
     private String csvFileName;
 
     public String getHostName() {
-        return hostName;
+        return this.hostName;
     }
 
     public String getKeySpace() {
-        return keySpace;
+        return this.keySpace;
     }
 
     public String getTableName() {
-        return tableName;
+        return this.tableName;
     }
 
     public String getCsvFileName() {
-        return csvFileName;
+        return this.csvFileName;
+    }
+
+    public String getSolrCore() {
+        return this.solrCore;
     }
 
     /*
