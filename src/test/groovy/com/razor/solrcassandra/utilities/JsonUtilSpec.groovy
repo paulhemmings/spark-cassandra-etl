@@ -1,4 +1,4 @@
-package com.razor.myDatastaxEtl.utilities
+package com.razor.solrcassandra.utilities
 
 import spock.lang.Specification
 

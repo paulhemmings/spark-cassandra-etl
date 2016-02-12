@@ -5,7 +5,7 @@ apply plugin: 'application'
 
 /* define main class */
 
-mainClassName = 'com.razor.myDatastaxEtl.EntryPoint'
+mainClassName = 'com.razor.solrcassandra.EntryPoint'
 
 /* Provide repositories */
 

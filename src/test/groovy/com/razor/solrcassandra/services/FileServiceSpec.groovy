@@ -1,4 +1,4 @@
-package com.razor.myDatastaxEtl.services
+package com.razor.solrcassandra.services
 
 import org.mockito.internal.stubbing.answers.ThrowsException
 import spock.lang.Specification

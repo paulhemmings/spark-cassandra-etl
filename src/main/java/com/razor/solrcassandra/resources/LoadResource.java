@@ -1,17 +1,17 @@
-package com.razor.myDatastaxEtl.resources;
+package com.razor.solrcassandra.resources;
 
 import com.google.gson.Gson;
-import com.razor.myDatastaxEtl.models.LoadProperties;
-import com.razor.myDatastaxEtl.services.CassandraService;
-import com.razor.myDatastaxEtl.services.FileService;
-import com.razor.myDatastaxEtl.utilities.JsonUtil;
+import com.razor.solrcassandra.models.LoadProperties;
+import com.razor.solrcassandra.services.CassandraService;
+import com.razor.solrcassandra.services.FileService;
+import com.razor.solrcassandra.utilities.JsonUtil;
 import spark.Request;
 import spark.Response;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-import static com.razor.myDatastaxEtl.utilities.JsonUtil.json;
+import static com.razor.solrcassandra.utilities.JsonUtil.json;
 import static spark.Spark.*;
 
 public class LoadResource {

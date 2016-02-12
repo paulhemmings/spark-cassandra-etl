@@ -1,4 +1,4 @@
-package com.razor.myDatastaxEtl.services;
+package com.razor.solrcassandra.services;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.razor.myDatastaxEtl.models.LoadProperties.ColumnProperty;
+import static com.razor.solrcassandra.models.LoadProperties.ColumnProperty;
 
 /**
  * Created by paulhemmings on 10/19/15.

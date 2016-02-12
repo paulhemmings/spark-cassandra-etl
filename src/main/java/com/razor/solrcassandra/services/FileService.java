@@ -1,4 +1,4 @@
-package com.razor.myDatastaxEtl.services;
+package com.razor.solrcassandra.services;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

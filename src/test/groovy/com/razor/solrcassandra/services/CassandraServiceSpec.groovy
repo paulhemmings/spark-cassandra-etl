@@ -1,6 +1,6 @@
-package com.razor.myDatastaxEtl.services
+package com.razor.solrcassandra.services
 
-import com.razor.myDatastaxEtl.models.LoadProperties
+import com.razor.solrcassandra.models.LoadProperties
 import spock.lang.Specification
 
 class CassandraServiceSpec extends Specification {

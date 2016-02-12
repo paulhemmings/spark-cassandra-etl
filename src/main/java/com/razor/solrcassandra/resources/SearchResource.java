@@ -1,10 +1,10 @@
-package com.razor.myDatastaxEtl.resources;
+package com.razor.solrcassandra.resources;
 
 import com.google.gson.Gson;
-import com.razor.myDatastaxEtl.models.SearchRequest;
-import com.razor.myDatastaxEtl.models.SearchResponse;
-import com.razor.myDatastaxEtl.services.SolrService;
-import com.razor.myDatastaxEtl.utilities.JsonUtil;
+import com.razor.solrcassandra.models.SearchRequest;
+import com.razor.solrcassandra.models.SearchResponse;
+import com.razor.solrcassandra.services.SolrService;
+import com.razor.solrcassandra.utilities.JsonUtil;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -13,7 +13,7 @@ import spark.Response;
 
 import java.io.IOException;
 
-import static com.razor.myDatastaxEtl.utilities.JsonUtil.json;
+import static com.razor.solrcassandra.utilities.JsonUtil.json;
 import static spark.Spark.get;
 
 /**

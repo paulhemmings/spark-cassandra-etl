@@ -1,4 +1,4 @@
-package com.razor.myDatastaxEtl.services
+package com.razor.solrcassandra.services
 
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery

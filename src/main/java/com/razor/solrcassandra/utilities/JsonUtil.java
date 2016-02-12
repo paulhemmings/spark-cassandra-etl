@@ -1,4 +1,4 @@
-package com.razor.myDatastaxEtl.utilities;
+package com.razor.solrcassandra.utilities;
 
 import com.google.gson.Gson;
 

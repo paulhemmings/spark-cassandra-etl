@@ -1,8 +1,8 @@
-package com.razor.myDatastaxEtl.services;
+package com.razor.solrcassandra.services;
 
 import com.google.gson.Gson;
-import com.razor.myDatastaxEtl.models.SearchRequest;
-import com.razor.myDatastaxEtl.models.SearchResponse;
+import com.razor.solrcassandra.models.SearchRequest;
+import com.razor.solrcassandra.models.SearchResponse;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
