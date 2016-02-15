@@ -1,6 +1,7 @@
 package com.razor.solrcassandra.converters;
 
 import com.razor.solrcassandra.models.LoadDocument;
+import com.razor.solrcassandra.models.LoadProperties;
 import org.apache.solr.common.SolrInputDocument;
 
 /**
@@ -8,7 +9,15 @@ import org.apache.solr.common.SolrInputDocument;
  */
 
 public class LoadDocumentToSolrInputDocument {
-    public SolrInputDocument convert(LoadDocument document) {
-        return new SolrInputDocument();
+    public SolrInputDocument convert(final LoadDocument document) {
+        SolrInputDocument solrInputDocument = new SolrInputDocument();
+
+        int index = 0;
+        for(LoadProperties.ColumnProperty columnProperty : document.getColumns()) {
+            solrInputDocument.setField(columnProperty.getColumnName(), document.getValues().get(index));
+            index ++;
+        }
+
+        return solrInputDocument;
     }
 }

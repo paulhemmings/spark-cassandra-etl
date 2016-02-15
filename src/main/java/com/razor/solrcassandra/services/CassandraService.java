@@ -29,7 +29,7 @@ public class CassandraService {
 
     public String buildHeader(List<ColumnProperty> columns) {
         return columns.stream()
-                .map(ColumnProperty::getColumnName)
+                .map(columnProperty -> "\"" + columnProperty.getColumnName().toUpperCase() + "\"")
                 .collect(Collectors.joining(","));
     }
 

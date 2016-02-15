@@ -1,5 +1,6 @@
 package com.razor.solrcassandra.services;
 
+import com.datastax.driver.core.exceptions.SyntaxError;
 import org.apache.solr.client.solrj.SolrServerException;
 
 import java.io.BufferedReader;
@@ -18,7 +19,7 @@ public class FileService {
                 if (fileServiceCaller != null) {
                     try {
                         fileServiceCaller.handleLine(line);
-                    } catch (SolrServerException e) {
+                    } catch (SolrServerException | SyntaxError e) {
                         e.printStackTrace();
                     }
                 }

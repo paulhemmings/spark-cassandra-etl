@@ -47,7 +47,7 @@ class CassandraServiceSpec extends Specification {
             columnOne.isColumnQuoted() >> true
 
         then:
-            cassandraService.buildCql(loadDocument) == "INSERT INTO table (column,column) VALUES ('one','two')";
+            cassandraService.buildCql(loadDocument) == "INSERT INTO table (\"COLUMN\",\"COLUMN\") VALUES ('one','two')";
     }
 
 }

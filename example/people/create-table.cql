@@ -1,4 +1,4 @@
-CREATE TABLE testNameTable (
+CREATE TABLE person (
 ID int,
 FIRSTNAME varchar,
 LASTNAME varchar,

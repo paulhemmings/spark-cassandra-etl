@@ -5,6 +5,8 @@ import com.razor.solrcassandra.models.SearchParameters;
 import spark.Request;
 import spark.utils.StringUtils;
 
+import java.util.Objects;
+
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orEmpty;
 
@@ -23,17 +25,21 @@ public class RequestToSearchParameters {
      */
 
     public SearchParameters convert(Request request) {
-        return orElse(convert(getQueryValue(request, "jq")), new SearchParameters()
-            .setQuery(this.getQueryValue(request, "q"))
-            .setFilterQueries(orEmpty(this.getQueryValue(request, "fq")).split(","))
-            .setEndDate(this.getQueryValue(request, "endDate"))
-            .setFacetLimit(this.getQueryValue(request, "facetLimit"))
-            .setFacets(orEmpty(this.getQueryValue(request, "facets")).split(","))
-            .setOrder(this.getQueryValue(request, "order", "ASC"))
-            .setRows(this.getQueryValue(request, "rows"))
-            .setSort(this.getQueryValue(request, "sort"))
-            .setStartDate(this.getQueryValue(request, "start"))
-            .setEndDate(this.getQueryValue(request, "end")));
+        SearchParameters searchParameters = convert(getQueryValue(request, "jq"));
+        if (Objects.isNull(searchParameters)) {
+            searchParameters = new SearchParameters()
+                .setQuery(this.getQueryValue(request, "q"))
+                .setFilterQueries(orEmpty(this.getQueryValue(request, "fq")).split(","))
+                .setEndDate(this.getQueryValue(request, "endDate"))
+                .setFacetLimit(this.getQueryValue(request, "facetLimit"))
+                .setFacets(orEmpty(this.getQueryValue(request, "facets")).split(","))
+                .setOrder(this.getQueryValue(request, "order", "ASC"))
+                .setRows(this.getQueryValue(request, "rows"))
+                .setSort(this.getQueryValue(request, "sort"))
+                .setStartDate(this.getQueryValue(request, "start"))
+                .setEndDate(this.getQueryValue(request, "end"));
+        }
+        return searchParameters;
     }
 
     public SearchParameters convert(String json) {

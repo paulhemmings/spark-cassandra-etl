@@ -1,0 +1,18 @@
+{
+  hostName: "127.0.0.1",
+  keySpace: "books",
+  solrCore: "books-core",
+  tableName: "book",
+  columnDefinitions: [
+    "id:false",
+    "cat:true",
+    "name:true",
+    "price:true",
+    "instock:true",
+    "author:true",
+    "series:true",
+    "sequence:true",
+    "genre:true"
+  ],
+  csvFileName: "[full-path]/spark-cassandra-etl/example/books/books.csv"
+}

@@ -12,6 +12,7 @@ import spark.Request;
 import spark.Response;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -76,6 +77,8 @@ public class LoadResource extends BaseResource {
 
     private String handleLoadRequest(Request request, Response response) throws IOException {
 
+        final List<LoadDocument> entries = new ArrayList<>();
+
         // get the load properties
         LoadProperties loadProperties = this.buildLoadProperties(request);
 
@@ -102,6 +105,9 @@ public class LoadResource extends BaseResource {
             // load it into SOLR
             this.solrService.load(solrClient, loadDocument);
 
+            // add to successful entry
+            entries.add(loadDocument);
+
         });
 
         // disconnect from Cassandra
@@ -110,7 +116,7 @@ public class LoadResource extends BaseResource {
         solrClient.close();
 
         // return something
-        return "success";
+        return new Gson().toJson(entries);
     }
 
 
