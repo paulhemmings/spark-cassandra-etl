@@ -1,4 +1,4 @@
-package com.razor.solrcassandra.datastore;
+package com.razor.solrcassandra.content;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -18,7 +18,7 @@ import static com.razor.solrcassandra.load.LoadProperties.ColumnProperty;
  * https://academy.datastax.com/demos/getting-started-apache-cassandra-and-java-part-i
  */
 
-public class CassandraService implements StoreService {
+public class CassandraService implements ContentService {
 
     private Session session;
 
@@ -34,6 +34,12 @@ public class CassandraService implements StoreService {
         }
     }
 
+    /**
+     * Insert Content into the Content Store
+     * @param loadDocument
+     * @return
+     */
+
     public LoadResponse insert(LoadDocument loadDocument) {
         String cql = this.buildCql(loadDocument);
         LoadResponse loadResponse = new LoadResponse().setLoadStatistics(cql);
@@ -43,7 +49,16 @@ public class CassandraService implements StoreService {
             loadResponse.setErrorMessage(ex.getMessage());
         }
         return loadResponse;
+    }
 
+    /**
+     * Retrieve Content from the Content Store
+     * @param request
+     * @return
+     */
+
+    public ContentResponse retrieve(ContentRequest request) {
+        return null;
     }
 
     protected String quoteColumn(String value, boolean quoteIt) {

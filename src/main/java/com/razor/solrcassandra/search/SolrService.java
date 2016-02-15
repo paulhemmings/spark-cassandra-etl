@@ -2,6 +2,7 @@ package com.razor.solrcassandra.search;
 
 import com.razor.solrcassandra.converters.LoadDocumentToSolrInputDocument;
 import com.razor.solrcassandra.converters.QueryResponseToSearchResponse;
+import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.load.LoadDocument;
 import com.razor.solrcassandra.load.LoadResponse;
 import org.apache.solr.client.solrj.SolrClient;
@@ -78,24 +79,28 @@ public class SolrService implements SearchService {
      * @throws SolrServerException
      */
 
-    public SearchResponse query(SearchParameters searchParameters)  {
+    public SearchResponse query(SearchParameters searchParameters) throws ServiceException {
         SolrQuery solrQuery = this.buildSearchQuery(searchParameters);
         try {
             QueryResponse queryResponse = this.getSolrClient().query(solrQuery);
             return this.buildQueryResponseConverterInstance().convert(queryResponse);
         } catch (SolrServerException | IOException e) {
-            e.printStackTrace();
+            throw new ServiceException("Failed to query search index");
         }
-        return new SearchResponse();
     }
 
     /**
-     * Load a generic LoadDocument object into the SOLR instance.
+     * Add a content document to the index
      * @param loadDocument
      * @return LoadResponse
      */
 
-    public LoadResponse load(LoadDocument loadDocument) {
+    public LoadResponse index(LoadDocument loadDocument) throws ServiceException {
+
+        if (Objects.isNull(this.getSolrClient())) {
+            throw new SolrClientException("Client not connected");
+        }
+
         LoadResponse loadResponse = new LoadResponse().setLoadStatistics(loadDocument);
         SolrInputDocument solrInputDocument = this.buildLoadDocumentConverterInstance().convert(loadDocument);
         try {

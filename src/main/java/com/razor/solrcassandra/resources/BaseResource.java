@@ -1,7 +1,7 @@
 package com.razor.solrcassandra.resources;
 
 import com.google.gson.Gson;
-import com.razor.solrcassandra.services.ServiceException;
+import com.razor.solrcassandra.exceptions.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,7 @@
 package com.razor.solrcassandra.search;
 
 import com.razor.solrcassandra.converters.RequestToSearchParameters;
+import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.resources.BaseResource;
 import com.razor.solrcassandra.utilities.JsonUtil;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -9,7 +10,6 @@ import spark.Response;
 
 import java.io.IOException;
 
-import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 import static spark.Spark.get;
 
 /**
@@ -54,7 +54,7 @@ public class SearchResource extends BaseResource {
      * @throws SolrServerException
      */
 
-    private SearchResponse handleSearchRequest(Request request, Response response) throws IOException, SolrServerException {
+    private SearchResponse handleSearchRequest(Request request, Response response) throws ServiceException {
         response.type("application/json");
         SearchParameters searchParameters = new RequestToSearchParameters().convert(request);
         this.searchService.connect(searchParameters.getSearchIndex());

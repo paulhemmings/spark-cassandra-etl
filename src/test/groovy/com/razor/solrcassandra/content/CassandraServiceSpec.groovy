@@ -1,6 +1,5 @@
-package com.razor.solrcassandra.datastore
+package com.razor.solrcassandra.content
 
-import com.razor.solrcassandra.datastore.CassandraService
 import com.razor.solrcassandra.load.LoadDocument
 import com.razor.solrcassandra.load.LoadProperties
 import spock.lang.Specification

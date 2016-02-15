@@ -1,7 +1,8 @@
 package com.razor.solrcassandra.load;
 
 import com.google.gson.Gson;
-import com.razor.solrcassandra.datastore.StoreService;
+import com.razor.solrcassandra.content.ContentService;
+import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.resources.BaseResource;
 import com.razor.solrcassandra.search.SearchService;
 import com.razor.solrcassandra.utilities.JsonUtil;
@@ -16,19 +17,19 @@ import static spark.Spark.post;
 public class LoadResource extends BaseResource {
 
     private FileLoaderService fileService;
-    private StoreService storeService;
+    private ContentService contentService;
     private SearchService searchService;
 
     /**
      * Constructor - inject all dependencies
      * @param fileService
-     * @param storeService
+     * @param contentService
      * @param searchService
      */
 
-    public LoadResource(FileLoaderService fileService, StoreService storeService, SearchService searchService) {
+    public LoadResource(FileLoaderService fileService, ContentService contentService, SearchService searchService) {
         this.fileService = fileService;
-        this.storeService = storeService;
+        this.contentService = contentService;
         this.searchService = searchService;
         setupEndpoints();
     }
@@ -38,7 +39,7 @@ public class LoadResource extends BaseResource {
      */
 
     private void setupEndpoints() {
-        post("/load", "application/json", this::handleLoadRequest, JsonUtil::toJson);
+        post("/index", "application/json", this::handleLoadRequest, JsonUtil::toJson);
     }
 
     /**
@@ -52,7 +53,7 @@ public class LoadResource extends BaseResource {
     }
 
     /**
-     * Build the load document from the Load Properties (spot the obvious future improvement here!!)
+     * Build the index document from the Load Properties (spot the obvious future improvement here!!)
      * @param name
      * @param columns
      * @param values
@@ -64,44 +65,49 @@ public class LoadResource extends BaseResource {
     }
 
     /**
-     * Handle load request
+     * Handle index request
      * @param request
      * @param response
      * @return success/failure message
      * @throws IOException
      */
 
-    private String handleLoadRequest(Request request, Response response) throws IOException {
+    private String handleLoadRequest(Request request, Response response) throws ServiceException {
 
         final List<Map<String, LoadResponse>> entries = new ArrayList<>();
 
-        // get the load properties
+        // get the index properties
         LoadProperties loadProperties = this.buildLoadProperties(request);
 
         // build the solrClient
         this.searchService.connect(loadProperties.getSearchIndex());
 
         // connect to Cassandra
-        this.storeService.connect(loadProperties);
+        this.contentService.connect(loadProperties);
 
-        // load the data.
+        // index the data.
         this.fileService.loadData(loadProperties.getCsvFileName(), line -> {
 
             Map<String, LoadResponse> responseMap = new HashMap<>();
 
-            // build the load document
+            // build the index document
             LoadDocument loadDocument = this.buildLoadDocument(
                 loadProperties.getTableName(),
                 loadProperties.buildColumns(),
                 Arrays.asList(line.split(","))
             );
 
-            // load it into Cassandra
-            responseMap.put("Inserting", this.storeService.insert(loadDocument));
+            try {
 
-            // load it into SOLR
-            if (responseMap.get("Inserting").isSuccessful()) {
-                responseMap.put("Indexing", this.searchService.load(loadDocument));
+                // index it into Cassandra
+                responseMap.put("Inserting", this.contentService.insert(loadDocument));
+
+                // index it into SOLR
+                responseMap.put("Indexing", this.searchService.index(loadDocument));
+
+            } catch (ServiceException se) {
+                // Record failure
+                responseMap.put("Error", new LoadResponse().setErrorMessage(se.getMessage()));
             }
 
             // add to successful entry
@@ -110,7 +116,7 @@ public class LoadResource extends BaseResource {
         });
 
         // disconnect from Cassandra
-        this.storeService.disconnect();
+        this.contentService.disconnect();
 
         // close the SOLR client
         this.searchService.disconnect();

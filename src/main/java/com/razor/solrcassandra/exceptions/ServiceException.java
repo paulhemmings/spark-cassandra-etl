@@ -1,4 +1,4 @@
-package com.razor.solrcassandra.services;
+package com.razor.solrcassandra.exceptions;
 
 /**
  * Created by paul.hemmings on 2/12/16.

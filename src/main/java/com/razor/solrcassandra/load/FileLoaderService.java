@@ -1,7 +1,6 @@
 package com.razor.solrcassandra.load;
 
-import com.datastax.driver.core.exceptions.SyntaxError;
-import org.apache.solr.client.solrj.SolrServerException;
+import com.razor.solrcassandra.exceptions.ServiceException;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,13 +12,17 @@ public class FileLoaderService {
         void handleLine(String line);
     }
 
-    public void loadData(String fileName, FileServiceCaller fileServiceCaller) throws IOException {
-        try(BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            for(String line; (line = br.readLine()) != null; ) {
-                if (fileServiceCaller != null) {
-                    fileServiceCaller.handleLine(line);
+    public void loadData(String fileName, FileServiceCaller fileServiceCaller) throws ServiceException {
+        try {
+            try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+                for (String line; (line = br.readLine()) != null; ) {
+                    if (fileServiceCaller != null) {
+                        fileServiceCaller.handleLine(line);
+                    }
                 }
             }
+        } catch(IOException io) {
+            throw new ServiceException("Failed to find CSV file to index");
         }
     }
 }

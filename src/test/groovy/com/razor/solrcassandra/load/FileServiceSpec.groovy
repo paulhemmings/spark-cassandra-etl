@@ -1,17 +1,19 @@
 package com.razor.solrcassandra.load
 
-import com.razor.solrcassandra.load.FileLoaderService
+import com.razor.solrcassandra.exceptions.ServiceException
 import spock.lang.Specification
 
 class FileServiceSpec extends Specification {
 
     def "it should load data"() {
         given:
-            FileLoaderService fileService = Spy();
-            FileLoaderService.FileServiceCaller fileServiceCaller = Mock();
+            def fileService = Spy(FileLoaderService);
+            def fileServiceCaller = Mock(FileLoaderService.FileServiceCaller);
+
         when:
             fileService.loadData("filename", fileServiceCaller);
+
         then:
-            FileNotFoundException ex = thrown()
+            ServiceException ex = thrown()
     }
 }

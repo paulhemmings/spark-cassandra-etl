@@ -1,5 +1,6 @@
 package com.razor.solrcassandra.search;
 
+import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.load.LoadDocument;
 import com.razor.solrcassandra.load.LoadResponse;
 
@@ -10,6 +11,6 @@ import com.razor.solrcassandra.load.LoadResponse;
 public interface SearchService {
     void connect(String searchIndex);
     void disconnect();
-    SearchResponse query(SearchParameters searchParameters);
-    LoadResponse load(LoadDocument loadDocument);
+    SearchResponse query(SearchParameters searchParameters) throws ServiceException;
+    LoadResponse index(LoadDocument loadDocument) throws ServiceException;
 }

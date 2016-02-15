@@ -3,9 +3,6 @@ package com.razor.solrcassandra.search
 import com.razor.solrcassandra.converters.LoadDocumentToSolrInputDocument
 import com.razor.solrcassandra.converters.QueryResponseToSearchResponse
 import com.razor.solrcassandra.load.LoadDocument
-import com.razor.solrcassandra.search.SearchParameters
-import com.razor.solrcassandra.search.SearchResponse
-import com.razor.solrcassandra.search.SolrService
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.response.QueryResponse
@@ -80,7 +77,7 @@ class SolrServiceSpec extends Specification {
             solrService.getSolrClient() >> solrClient
 
         when:
-            solrService.load(loadDocument)
+            solrService.index(loadDocument)
 
         then:
             1 * solrService.buildLoadDocumentConverterInstance() >> loadDocumentToSolrInputDocument
