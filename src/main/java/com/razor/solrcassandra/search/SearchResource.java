@@ -1,11 +1,8 @@
-package com.razor.solrcassandra.resources;
+package com.razor.solrcassandra.search;
 
 import com.razor.solrcassandra.converters.RequestToSearchParameters;
-import com.razor.solrcassandra.models.SearchParameters;
-import com.razor.solrcassandra.models.SearchResponse;
-import com.razor.solrcassandra.services.SolrService;
+import com.razor.solrcassandra.resources.BaseResource;
 import com.razor.solrcassandra.utilities.JsonUtil;
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import spark.Request;
 import spark.Response;
@@ -21,15 +18,15 @@ import static spark.Spark.get;
 
 public class SearchResource extends BaseResource {
 
-    private SolrService solrService;
+    private SearchService searchService;
 
     /**
      * Constructor - inject dependencies
-     * @param solrService
+     * @param searchService
      */
 
-    public SearchResource(SolrService solrService) {
-        this.solrService = solrService;
+    public SearchResource(SearchService searchService) {
+        this.searchService = searchService;
         setupEndpoints();
     }
 
@@ -59,11 +56,10 @@ public class SearchResource extends BaseResource {
 
     private SearchResponse handleSearchRequest(Request request, Response response) throws IOException, SolrServerException {
         response.type("application/json");
-        String core = orElse(request.params(":core"), "master");
         SearchParameters searchParameters = new RequestToSearchParameters().convert(request);
-        SolrClient solrClient = this.solrService.buildSolrClient(this.solrService.getFullUrl(core));
-        SearchResponse solrResponse = this.solrService.query(solrClient, searchParameters);
-        solrClient.close();
+        this.searchService.connect(searchParameters.getSearchIndex());
+        SearchResponse solrResponse = this.searchService.query(searchParameters);
+        this.searchService.disconnect();
         return solrResponse;
     }
 

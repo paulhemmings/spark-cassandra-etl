@@ -1,7 +1,7 @@
 package com.razor.solrcassandra.converters
 
-import com.razor.solrcassandra.models.LoadDocument
-import com.razor.solrcassandra.models.LoadProperties
+import com.razor.solrcassandra.load.LoadDocument
+import com.razor.solrcassandra.load.LoadProperties
 import spock.lang.Specification
 
 /**

@@ -1,4 +1,4 @@
-package com.razor.solrcassandra.models;
+package com.razor.solrcassandra.load;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,7 +13,7 @@ public class LoadProperties {
     private String keySpace;
 
     private String tableName;
-    private String solrCore;
+    private String searchIndex;
     private List<String> columnDefinitions;
     private String csvFileName;
 
@@ -33,11 +33,11 @@ public class LoadProperties {
         return this.csvFileName;
     }
 
-    public String getSolrCore() {
-        return this.solrCore;
+    public String getSearchIndex() {
+        return searchIndex;
     }
 
-    /*
+/*
      * For testing purposes only.
      */
 

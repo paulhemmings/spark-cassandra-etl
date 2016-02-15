@@ -1,5 +1,6 @@
 package com.razor.solrcassandra.models
 
+import com.razor.solrcassandra.load.LoadProperties
 import spock.lang.Specification
 
 /**

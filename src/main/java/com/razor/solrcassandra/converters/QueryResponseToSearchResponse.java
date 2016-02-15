@@ -1,6 +1,6 @@
 package com.razor.solrcassandra.converters;
 
-import com.razor.solrcassandra.models.SearchResponse;
+import com.razor.solrcassandra.search.SearchResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;

@@ -1,7 +1,7 @@
 package com.razor.solrcassandra.converters;
 
 import com.google.gson.Gson;
-import com.razor.solrcassandra.models.SearchParameters;
+import com.razor.solrcassandra.search.SearchParameters;
 import spark.Request;
 import spark.utils.StringUtils;
 
@@ -28,6 +28,7 @@ public class RequestToSearchParameters {
         SearchParameters searchParameters = convert(getQueryValue(request, "jq"));
         if (Objects.isNull(searchParameters)) {
             searchParameters = new SearchParameters()
+                .setSearchIndex(orElse(request.params(":core"), "master"))
                 .setQuery(this.getQueryValue(request, "q"))
                 .setFilterQueries(orEmpty(this.getQueryValue(request, "fq")).split(","))
                 .setEndDate(this.getQueryValue(request, "endDate"))

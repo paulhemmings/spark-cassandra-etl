@@ -1,14 +1,14 @@
-package com.razor.solrcassandra.services
+package com.razor.solrcassandra.load
 
-import org.mockito.internal.stubbing.answers.ThrowsException
+import com.razor.solrcassandra.load.FileLoaderService
 import spock.lang.Specification
 
 class FileServiceSpec extends Specification {
 
     def "it should load data"() {
         given:
-            FileService fileService = Spy();
-            FileService.FileServiceCaller fileServiceCaller = Mock();
+            FileLoaderService fileService = Spy();
+            FileLoaderService.FileServiceCaller fileServiceCaller = Mock();
         when:
             fileService.loadData("filename", fileServiceCaller);
         then:

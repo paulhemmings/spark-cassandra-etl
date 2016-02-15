@@ -1,10 +1,12 @@
 package com.razor.solrcassandra;
 
-import com.razor.solrcassandra.resources.LoadResource;
-import com.razor.solrcassandra.resources.SearchResource;
-import com.razor.solrcassandra.services.CassandraService;
-import com.razor.solrcassandra.services.FileService;
-import com.razor.solrcassandra.services.SolrService;
+import com.razor.solrcassandra.datastore.StoreService;
+import com.razor.solrcassandra.load.LoadResource;
+import com.razor.solrcassandra.search.SearchResource;
+import com.razor.solrcassandra.datastore.CassandraService;
+import com.razor.solrcassandra.load.FileLoaderService;
+import com.razor.solrcassandra.search.SearchService;
+import com.razor.solrcassandra.search.SolrService;
 
 public class EntryPoint {
 
@@ -17,14 +19,14 @@ public class EntryPoint {
 
         // create the services
 
-        SolrService solrService = new SolrService();
-        FileService fileService = new FileService();
-        CassandraService cassandraService = new CassandraService();
+        SearchService searchService = new SolrService();
+        FileLoaderService fileService = new FileLoaderService();
+        StoreService storeService = new CassandraService();
 
         // create the resources (API service endpoints)
 
-        new LoadResource(fileService, cassandraService, solrService);
-        new SearchResource(solrService);
+        new LoadResource(fileService, storeService, searchService);
+        new SearchResource(searchService);
     }
 
 }

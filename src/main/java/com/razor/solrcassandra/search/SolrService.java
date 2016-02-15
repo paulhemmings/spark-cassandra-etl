@@ -1,19 +1,19 @@
-package com.razor.solrcassandra.services;
+package com.razor.solrcassandra.search;
 
 import com.razor.solrcassandra.converters.LoadDocumentToSolrInputDocument;
 import com.razor.solrcassandra.converters.QueryResponseToSearchResponse;
-import com.razor.solrcassandra.models.LoadDocument;
-import com.razor.solrcassandra.models.LoadResponse;
-import com.razor.solrcassandra.models.SearchParameters;
-import com.razor.solrcassandra.models.SearchResponse;
+import com.razor.solrcassandra.load.LoadDocument;
+import com.razor.solrcassandra.load.LoadResponse;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 import spark.utils.StringUtils;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 
@@ -21,9 +21,10 @@ import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
  * Created by paul.hemmings on 2/11/16.
  */
 
-public class SolrService {
+public class SolrService implements SearchService {
 
     private static String SERVER_URL = "http://localhost:8983/solr";
+    private SolrClient solrClient = null;
 
     /**
      * Build SolrQuery from the generic search parameters
@@ -32,7 +33,7 @@ public class SolrService {
      * @return
      */
 
-    protected SolrQuery buildSearchQuery(SearchParameters searchParameters) {
+    public SolrQuery buildSearchQuery(SearchParameters searchParameters) {
         SolrQuery solrQuery = new SolrQuery();
         solrQuery.setFacet(true);
         solrQuery.setFacetLimit(Integer.valueOf(orElse(searchParameters.getFacetLimit(), "100")));
@@ -47,35 +48,66 @@ public class SolrService {
     }
 
     /**
+     * Connect
+     * @param searchIndex
+     */
+
+    public void connect(String searchIndex) {
+        this.solrClient = this.buildSolrClient(this.getFullUrl(searchIndex));
+    }
+
+    /**
+     * Disconnect
+     */
+
+    public void disconnect()  {
+        if (!Objects.isNull(this.solrClient)) {
+            try {
+                this.solrClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
      * Build a generic SearchResponse from the Solr response
-     * @param solrClient
      * @param searchParameters
      * @return
      * @throws IOException
      * @throws SolrServerException
      */
 
-    public SearchResponse query(SolrClient solrClient, SearchParameters searchParameters) throws IOException, SolrServerException {
+    public SearchResponse query(SearchParameters searchParameters)  {
         SolrQuery solrQuery = this.buildSearchQuery(searchParameters);
-        org.apache.solr.client.solrj.response.QueryResponse queryResponse = solrClient.query(solrQuery);
-        return this.buildQueryResponseConverterInstance().convert(queryResponse);
+        try {
+            QueryResponse queryResponse = this.getSolrClient().query(solrQuery);
+            return this.buildQueryResponseConverterInstance().convert(queryResponse);
+        } catch (SolrServerException | IOException e) {
+            e.printStackTrace();
+        }
+        return new SearchResponse();
     }
 
     /**
      * Load a generic LoadDocument object into the SOLR instance.
-     * @param solrClient
      * @param loadDocument
      * @return LoadResponse
-     * @throws IOException
-     * @throws SolrServerException
      */
 
-    public LoadResponse load(SolrClient solrClient, LoadDocument loadDocument) throws IOException, SolrServerException {
+    public LoadResponse load(LoadDocument loadDocument) {
+        LoadResponse loadResponse = new LoadResponse().setLoadStatistics(loadDocument);
         SolrInputDocument solrInputDocument = this.buildLoadDocumentConverterInstance().convert(loadDocument);
-        solrClient.add(solrInputDocument);
-        solrClient.commit();
-        return new LoadResponse();
+        try {
+            this.getSolrClient().add(solrInputDocument);
+            this.getSolrClient().commit();
+        } catch (SolrServerException | IOException e) {
+            loadResponse.setErrorMessage(e.getMessage());
+        }
+        return loadResponse;
     }
+
+    public SolrClient getSolrClient() { return this.solrClient; }
 
     public String getServerUrl() {
         return SERVER_URL;

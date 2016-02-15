@@ -1,4 +1,6 @@
-package com.razor.solrcassandra.models;
+package com.razor.solrcassandra.load;
+
+import java.util.Objects;
 
 /**
  * Created by paul.hemmings on 2/12/16.
@@ -7,7 +9,7 @@ package com.razor.solrcassandra.models;
 public class LoadResponse {
     private String successMessage;
     private String errorMessage;
-    private String loadStatistics;
+    private Object loadStatistics;
 
     public String getSuccessMessage() {
         return successMessage;
@@ -27,12 +29,16 @@ public class LoadResponse {
         return this;
     }
 
-    public String getLoadStatistics() {
+    public Object getLoadStatistics() {
         return loadStatistics;
     }
 
-    public LoadResponse setLoadStatistics(String loadStatistics) {
+    public LoadResponse setLoadStatistics(Object loadStatistics) {
         this.loadStatistics = loadStatistics;
         return this;
+    }
+
+    public boolean isSuccessful() {
+        return Objects.isNull(this.errorMessage);
     }
 }

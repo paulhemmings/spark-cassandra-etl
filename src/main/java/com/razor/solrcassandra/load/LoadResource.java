@@ -1,39 +1,35 @@
-package com.razor.solrcassandra.resources;
+package com.razor.solrcassandra.load;
 
 import com.google.gson.Gson;
-import com.razor.solrcassandra.models.LoadDocument;
-import com.razor.solrcassandra.models.LoadProperties;
-import com.razor.solrcassandra.services.CassandraService;
-import com.razor.solrcassandra.services.FileService;
-import com.razor.solrcassandra.services.SolrService;
+import com.razor.solrcassandra.datastore.StoreService;
+import com.razor.solrcassandra.resources.BaseResource;
+import com.razor.solrcassandra.search.SearchService;
 import com.razor.solrcassandra.utilities.JsonUtil;
-import org.apache.solr.client.solrj.SolrClient;
 import spark.Request;
 import spark.Response;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static spark.Spark.post;
 
 public class LoadResource extends BaseResource {
 
-    private FileService fileService;
-    private CassandraService cassandraService;
-    private SolrService solrService;
+    private FileLoaderService fileService;
+    private StoreService storeService;
+    private SearchService searchService;
 
     /**
      * Constructor - inject all dependencies
      * @param fileService
-     * @param cassandraService
+     * @param storeService
+     * @param searchService
      */
 
-    public LoadResource(FileService fileService, CassandraService cassandraService, SolrService solrService) {
+    public LoadResource(FileLoaderService fileService, StoreService storeService, SearchService searchService) {
         this.fileService = fileService;
-        this.cassandraService = cassandraService;
-        this.solrService = solrService;
+        this.storeService = storeService;
+        this.searchService = searchService;
         setupEndpoints();
     }
 
@@ -77,19 +73,21 @@ public class LoadResource extends BaseResource {
 
     private String handleLoadRequest(Request request, Response response) throws IOException {
 
-        final List<LoadDocument> entries = new ArrayList<>();
+        final List<Map<String, LoadResponse>> entries = new ArrayList<>();
 
         // get the load properties
         LoadProperties loadProperties = this.buildLoadProperties(request);
 
         // build the solrClient
-        SolrClient solrClient = this.solrService.buildSolrClient(this.solrService.getFullUrl(loadProperties.getSolrCore()));
+        this.searchService.connect(loadProperties.getSearchIndex());
 
         // connect to Cassandra
-        this.cassandraService.connect(loadProperties.getHostName(), loadProperties.getKeySpace());
+        this.storeService.connect(loadProperties);
 
         // load the data.
         this.fileService.loadData(loadProperties.getCsvFileName(), line -> {
+
+            Map<String, LoadResponse> responseMap = new HashMap<>();
 
             // build the load document
             LoadDocument loadDocument = this.buildLoadDocument(
@@ -99,26 +97,26 @@ public class LoadResource extends BaseResource {
             );
 
             // load it into Cassandra
-            String cql = this.cassandraService.buildCql(loadDocument);
-            this.cassandraService.insert(cql);
+            responseMap.put("Inserting", this.storeService.insert(loadDocument));
 
             // load it into SOLR
-            this.solrService.load(solrClient, loadDocument);
+            if (responseMap.get("Inserting").isSuccessful()) {
+                responseMap.put("Indexing", this.searchService.load(loadDocument));
+            }
 
             // add to successful entry
-            entries.add(loadDocument);
+            entries.add(responseMap);
 
         });
 
         // disconnect from Cassandra
-        this.cassandraService.disconnect();
+        this.storeService.disconnect();
+
         // close the SOLR client
-        solrClient.close();
+        this.searchService.disconnect();
 
         // return something
         return new Gson().toJson(entries);
     }
-
-
 
 }

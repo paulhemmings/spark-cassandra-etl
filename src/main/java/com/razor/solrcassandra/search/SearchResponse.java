@@ -1,4 +1,4 @@
-package com.razor.solrcassandra.models;
+package com.razor.solrcassandra.search;
 
 import java.util.*;
 import java.util.stream.Collectors;

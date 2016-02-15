@@ -1,4 +1,4 @@
-package com.razor.solrcassandra.models;
+package com.razor.solrcassandra.search;
 
 import com.razor.solrcassandra.utilities.ExtendedUtils;
 import spark.utils.StringUtils;
@@ -15,6 +15,9 @@ import static java.util.stream.Collectors.toList;
 public class SearchParameters {
 
     public static final String ASC = "ASC";
+
+    // SOLR core
+    private String searchIndex;
 
     // search query (q)
     private String query;
@@ -38,8 +41,18 @@ public class SearchParameters {
     // maximum number of facets to return
     private String facetLimit;
 
+    public String getSearchIndex() {
+        return searchIndex;
+    }
+
+    public SearchParameters setSearchIndex(String searchIndex) {
+        this.searchIndex = searchIndex;
+        return this;
+    }
 
     /** Accessors */
+
+
 
     public String getQuery() {
         return query;

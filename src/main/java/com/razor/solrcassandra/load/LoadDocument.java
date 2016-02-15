@@ -1,4 +1,4 @@
-package com.razor.solrcassandra.models;
+package com.razor.solrcassandra.load;
 
 import java.util.List;
 

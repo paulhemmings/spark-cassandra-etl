@@ -1,7 +1,8 @@
-package com.razor.solrcassandra.services
+package com.razor.solrcassandra.datastore
 
-import com.razor.solrcassandra.models.LoadDocument
-import com.razor.solrcassandra.models.LoadProperties
+import com.razor.solrcassandra.datastore.CassandraService
+import com.razor.solrcassandra.load.LoadDocument
+import com.razor.solrcassandra.load.LoadProperties
 import spock.lang.Specification
 
 class CassandraServiceSpec extends Specification {
@@ -17,7 +18,7 @@ class CassandraServiceSpec extends Specification {
             columnTwo.setColumnName("two");
 
         expect:
-            cassandraService.buildHeader([columnOne, columnTwo]) == "one,two";
+            cassandraService.buildHeader([columnOne, columnTwo]) == "\"ONE\",\"TWO\"";
     }
 
     def "it should join more than one column"() {
