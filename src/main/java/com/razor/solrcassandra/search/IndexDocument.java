@@ -1,4 +1,6 @@
-package com.razor.solrcassandra.load;
+package com.razor.solrcassandra.search;
+
+import com.razor.solrcassandra.content.ContentLoadRequest;
 
 import java.util.List;
 
@@ -6,12 +8,12 @@ import java.util.List;
  * Created by paul.hemmings on 2/12/16.
  */
 
-public class LoadDocument {
+public class IndexDocument {
     private String name;
-    private java.util.List<LoadProperties.ColumnProperty> columns;
+    private java.util.List<ContentLoadRequest.ColumnProperty> columns;
     private List<String> values;
 
-    public List<LoadProperties.ColumnProperty> getColumns() {
+    public List<ContentLoadRequest.ColumnProperty> getColumns() {
         return columns;
     }
 
@@ -19,12 +21,12 @@ public class LoadDocument {
         return name;
     }
 
-    public LoadDocument setName(String name) {
+    public IndexDocument setName(String name) {
         this.name = name;
         return this;
     }
 
-    public LoadDocument setColumns(List<LoadProperties.ColumnProperty> columns) {
+    public IndexDocument setColumns(List<ContentLoadRequest.ColumnProperty> columns) {
         this.columns = columns;
         return this;
     }
@@ -33,7 +35,7 @@ public class LoadDocument {
         return values;
     }
 
-    public LoadDocument setValues(List<String> values) {
+    public IndexDocument setValues(List<String> values) {
         this.values = values;
         return this;
     }

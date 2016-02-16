@@ -3,15 +3,11 @@ package com.razor.solrcassandra.content;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.SyntaxError;
-import com.razor.solrcassandra.load.LoadDocument;
-import com.razor.solrcassandra.load.LoadProperties;
-import com.razor.solrcassandra.load.LoadResponse;
+import com.razor.solrcassandra.exceptions.ServiceException;
+import com.razor.solrcassandra.models.RequestResponse;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static com.razor.solrcassandra.load.LoadProperties.ColumnProperty;
 
 /**
  * Created by paulhemmings on 10/19/15.
@@ -22,9 +18,9 @@ public class CassandraService implements ContentService {
 
     private Session session;
 
-    public void connect(LoadProperties loadProperties) {
-        String host = loadProperties.getHostName();
-        String keySpace = loadProperties.getKeySpace();
+    public void connect(ContentLoadRequest contentLoadRequest) {
+        String host = contentLoadRequest.getHostName();
+        String keySpace = contentLoadRequest.getKeySpace();
         this.session = Cluster.builder().addContactPoint(host).build().connect(keySpace);
     }
 
@@ -36,19 +32,28 @@ public class CassandraService implements ContentService {
 
     /**
      * Insert Content into the Content Store
-     * @param loadDocument
+     * @param contentDocument
      * @return
      */
 
-    public LoadResponse insert(LoadDocument loadDocument) {
-        String cql = this.buildCql(loadDocument);
-        LoadResponse loadResponse = new LoadResponse().setLoadStatistics(cql);
-        try {
-            this.session.execute(cql);
-        } catch (SyntaxError ex) {
-            loadResponse.setErrorMessage(ex.getMessage());
+    public RequestResponse<ContentDocument> insert(ContentDocument contentDocument) throws ServiceException {
+
+        RequestResponse<ContentDocument> requestResponse = new RequestResponse<>();
+
+        if (Objects.isNull(this.session)) {
+            throw new ServiceException("No connection to content store");
         }
-        return loadResponse;
+
+        for(ContentDocument.ContentRow contentRow : contentDocument.rows()) {
+            String cql = this.buildCql(contentDocument.getName(), contentRow);
+            try {
+                this.session.execute(cql);
+            } catch (SyntaxError ex) {
+                requestResponse.setErrorMessage(ex.getMessage());
+            }
+        }
+
+        return requestResponse;
     }
 
     /**
@@ -57,33 +62,53 @@ public class CassandraService implements ContentService {
      * @return
      */
 
-    public ContentResponse retrieve(ContentRequest request) {
+    public RequestResponse<ContentDocument> retrieve(ContentRetrieveRequest request) throws ServiceException {
+        if (Objects.isNull(this.session)) {
+            throw new ServiceException("No connection to content store");
+        }
         return null;
     }
 
-    protected String quoteColumn(String value, boolean quoteIt) {
-        return quoteIt ? "'" + value + "'" : value;
-    }
+    /**
+     * Build the CQL header row
+     * @param contentRow
+     * @return
+     */
 
-    protected String buildHeader(List<ColumnProperty> columns) {
-        return columns.stream()
-                .map(columnProperty -> "\"" + columnProperty.getColumnName().toUpperCase() + "\"")
+    protected String buildHeader(ContentDocument.ContentRow contentRow) {
+        return contentRow.stream()
+                .map(contentCell -> "\"" + contentCell.getColumnName().toUpperCase() + "\"")
                 .collect(Collectors.joining(","));
     }
 
-    protected String buildValues(List<ColumnProperty> columns, List<String> values) {
-        return IntStream.range(0, columns.size())
-                    .mapToObj(index -> this.quoteColumn(values.get(index), columns.get(index).isColumnQuoted()))
-                    .collect(Collectors.joining(","));
+    /**
+     * Build the CQL values row
+     * @param contentRow
+     * @return
+     */
+
+    protected String buildValues(ContentDocument.ContentRow contentRow) {
+        return contentRow.stream()
+                .map(contentCell -> String.valueOf(contentCell.getColumnValue()))
+                .collect(Collectors.joining(","));
+//        return IntStream.range(0, contentDocument.rows().size())
+//                    .mapToObj(index -> this.quoteColumn(values.get(index), columns.get(index).isColumnQuoted()))
+//                    .collect(Collectors.joining(","));
     }
 
-    protected String buildCql(LoadDocument loadDocument) {
+    /**
+     * Build the CQL
+     * @param contentRow
+     * @return
+     */
+
+    protected String buildCql(String contentName, ContentDocument.ContentRow contentRow) {
         return "INSERT INTO "
-                + loadDocument.getName()
+                + contentName
                 + " ("
-                + this.buildHeader(loadDocument.getColumns())
+                + this.buildHeader(contentRow)
                 + ") VALUES ("
-                + this.buildValues(loadDocument.getColumns(), loadDocument.getValues())
+                + this.buildValues(contentRow)
                 + ")";
     }
 

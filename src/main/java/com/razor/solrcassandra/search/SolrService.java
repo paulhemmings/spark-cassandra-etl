@@ -1,10 +1,10 @@
 package com.razor.solrcassandra.search;
 
-import com.razor.solrcassandra.converters.LoadDocumentToSolrInputDocument;
+import com.razor.solrcassandra.content.ContentDocument;
+import com.razor.solrcassandra.converters.ContentDocumentToSolrInputDocument;
 import com.razor.solrcassandra.converters.QueryResponseToSearchResponse;
 import com.razor.solrcassandra.exceptions.ServiceException;
-import com.razor.solrcassandra.load.LoadDocument;
-import com.razor.solrcassandra.load.LoadResponse;
+import com.razor.solrcassandra.models.RequestResponse;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -14,6 +14,7 @@ import org.apache.solr.common.SolrInputDocument;
 import spark.utils.StringUtils;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
@@ -91,25 +92,31 @@ public class SolrService implements SearchService {
 
     /**
      * Add a content document to the index
-     * @param loadDocument
-     * @return LoadResponse
+     * @param contentDocument
+     * @return RequestResponse
      */
 
-    public LoadResponse index(LoadDocument loadDocument) throws ServiceException {
+    public RequestResponse<ContentDocument> index(ContentDocument contentDocument) throws ServiceException {
+
+        RequestResponse<ContentDocument> requestResponse = new RequestResponse<>();
 
         if (Objects.isNull(this.getSolrClient())) {
             throw new SolrClientException("Client not connected");
         }
 
-        LoadResponse loadResponse = new LoadResponse().setLoadStatistics(loadDocument);
-        SolrInputDocument solrInputDocument = this.buildLoadDocumentConverterInstance().convert(loadDocument);
-        try {
-            this.getSolrClient().add(solrInputDocument);
-            this.getSolrClient().commit();
-        } catch (SolrServerException | IOException e) {
-            loadResponse.setErrorMessage(e.getMessage());
+        requestResponse.setResponseContent(contentDocument);
+        List<SolrInputDocument> solrInputDocuments = this.buildLoadDocumentConverterInstance().convert(contentDocument);
+
+        for (SolrInputDocument inputDocument : solrInputDocuments) {
+            try {
+                this.getSolrClient().add(inputDocument);
+                this.getSolrClient().commit();
+            } catch (SolrServerException | IOException e) {
+                requestResponse.setErrorMessage(e.getMessage());
+            }
         }
-        return loadResponse;
+
+        return requestResponse;
     }
 
     public SolrClient getSolrClient() { return this.solrClient; }
@@ -130,8 +137,8 @@ public class SolrService implements SearchService {
         return new QueryResponseToSearchResponse();
     }
 
-    public LoadDocumentToSolrInputDocument buildLoadDocumentConverterInstance() {
-        return new LoadDocumentToSolrInputDocument();
+    public ContentDocumentToSolrInputDocument buildLoadDocumentConverterInstance() {
+        return new ContentDocumentToSolrInputDocument();
     }
 
 }

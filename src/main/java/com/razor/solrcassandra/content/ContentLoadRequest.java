@@ -1,4 +1,4 @@
-package com.razor.solrcassandra.load;
+package com.razor.solrcassandra.content;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -7,13 +7,12 @@ import java.util.stream.Collectors;
  * Created by paulhemmings on 10/19/15.
  */
 
-public class LoadProperties {
+public class ContentLoadRequest {
 
     private String hostName;
     private String keySpace;
 
     private String tableName;
-    private String searchIndex;
     private List<String> columnDefinitions;
     private String csvFileName;
 
@@ -33,11 +32,7 @@ public class LoadProperties {
         return this.csvFileName;
     }
 
-    public String getSearchIndex() {
-        return searchIndex;
-    }
-
-/*
+    /*
      * For testing purposes only.
      */
 

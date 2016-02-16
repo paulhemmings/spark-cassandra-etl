@@ -1,8 +1,8 @@
 package com.razor.solrcassandra.search
 
-import com.razor.solrcassandra.converters.LoadDocumentToSolrInputDocument
+import com.razor.solrcassandra.content.ContentDocument
+import com.razor.solrcassandra.converters.ContentDocumentToSolrInputDocument
 import com.razor.solrcassandra.converters.QueryResponseToSearchResponse
-import com.razor.solrcassandra.load.LoadDocument
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.response.QueryResponse
@@ -71,17 +71,17 @@ class SolrServiceSpec extends Specification {
             def solrService = Spy(SolrService)
             def solrClient = Mock(SolrClient)
             def solrInputDocument = Mock(SolrInputDocument)
-            def loadDocument = Mock(LoadDocument)
-            def loadDocumentToSolrInputDocument = Mock(LoadDocumentToSolrInputDocument)
+            def contentDocument = Mock(ContentDocument)
+            def loadDocumentToSolrInputDocument = Mock(ContentDocumentToSolrInputDocument)
 
             solrService.getSolrClient() >> solrClient
 
         when:
-            solrService.index(loadDocument)
+            solrService.index(contentDocument)
 
         then:
             1 * solrService.buildLoadDocumentConverterInstance() >> loadDocumentToSolrInputDocument
-            1 * loadDocumentToSolrInputDocument.convert(loadDocument) >> solrInputDocument
+            1 * loadDocumentToSolrInputDocument.convert(contentDocument) >> [solrInputDocument]
             1 * solrClient.add(solrInputDocument)
             1 * solrClient.commit()
             noExceptionThrown()

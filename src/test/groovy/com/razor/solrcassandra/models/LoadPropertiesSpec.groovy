@@ -1,6 +1,6 @@
 package com.razor.solrcassandra.models
 
-import com.razor.solrcassandra.load.LoadProperties
+import com.razor.solrcassandra.content.ContentLoadRequest
 import spock.lang.Specification
 
 /**
@@ -11,10 +11,10 @@ class LoadPropertiesSpec extends Specification {
 
     def "it should build a column property"() {
         given:
-            def loadProperties = Spy(LoadProperties)
+            def loadProperties = Spy(ContentLoadRequest)
         when:
             loadProperties.setColumnDefinitions(["one:true", "two:false"])
-            List<LoadProperties.ColumnProperty> properties = loadProperties.buildColumns()
+            List<ContentLoadRequest.ColumnProperty> properties = loadProperties.buildColumns()
         then:
             properties.size() == 2
             properties.get(0).getColumnName() == "one"
