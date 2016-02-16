@@ -5,11 +5,14 @@ import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.load.FileLoaderService;
 import com.razor.solrcassandra.models.RequestResponse;
 import com.razor.solrcassandra.resources.BaseResource;
+import com.razor.solrcassandra.utilities.ExtendedUtils;
 import com.razor.solrcassandra.utilities.JsonUtil;
 import spark.Request;
 import spark.Response;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static spark.Spark.post;
 import static spark.Spark.get;
@@ -36,8 +39,8 @@ public class ContentResource extends BaseResource {
      */
 
     private void setupEndpoints() {
-        post("/load", "application/json", this::handleLoadRequest, JsonUtil::toJson);
-        get("/retrieve", "application/json", this::handleRetrieveRequest, JsonUtil::toJson);
+        post("/content/load", "application/json", this::handleLoadRequest, JsonUtil::toJson);
+        get("/content/retrieve", "application/json", this::handleRetrieveRequest, JsonUtil::toJson);
     }
 
     /**
@@ -47,7 +50,7 @@ public class ContentResource extends BaseResource {
      */
 
     private ContentRetrieveRequest buildContentRetrieveRequest(Request request) {
-        return new ContentRetrieveRequest();
+        return new Gson().fromJson(new Gson().toJson(request.params()), ContentRetrieveRequest.class);
     }
 
     /**
@@ -75,9 +78,10 @@ public class ContentResource extends BaseResource {
         int index = 0;
         for (ContentLoadRequest.ColumnProperty column : columns) {
             String value = column.isColumnQuoted() ? "'" + values.get(index) + "'" : values.get(index);
-            contentRow.add(new ContentDocument.ContentCell().setColumnName(column.getColumnName()).setColumnValue(value));
+            contentRow.add(column.getColumnName(), value);
             index ++;
         }
+        
         return contentDocument;
     }
 
@@ -115,7 +119,7 @@ public class ContentResource extends BaseResource {
         // index the data.
         new FileLoaderService().loadData(contentLoadRequest.getCsvFileName(), line -> {
 
-            RequestResponse<ContentDocument> requestResponse = null;
+            RequestResponse<ContentDocument> requestResponse = new RequestResponse<>();
 
             // build the content document
             ContentDocument loadDocument = this.buildContentDocument(
@@ -128,7 +132,7 @@ public class ContentResource extends BaseResource {
             try {
                 requestResponse = this.contentService.insert(loadDocument);
             } catch (ServiceException e) {
-                requestResponse = new RequestResponse<>().setErrorMessage(e.getMessage());
+                requestResponse.setErrorMessage(e.getMessage());
             }
 
             // add to successful entry

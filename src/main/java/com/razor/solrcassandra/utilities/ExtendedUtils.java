@@ -22,4 +22,8 @@ public final class ExtendedUtils {
         return orElse(value, Collections.emptyList());
     }
 
+    public static String quote(String value, boolean toQuote) {
+        return toQuote ? "'" + value.replace("'", "") + "'" : value;
+    }
+
 }
