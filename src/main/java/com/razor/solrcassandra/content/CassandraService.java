@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Created by paulhemmings on 10/19/15.
@@ -39,22 +38,6 @@ public class CassandraService implements ContentService {
             BuiltStatement insertStatement = this.buildInsertStatement(keySpace, tableName, contentDocument);
             PreparedStatement preparedStatement = session.prepare(insertStatement);
             this.withBoundRows(preparedStatement, contentDocument, session::execute);
-        });
-        return new RequestResponse();
-    }
-
-    /**
-     * Insert Content into the Content Store
-     * @param contentDocument
-     * @return
-     */
-
-    public RequestResponse insert(String host, String keySpace, ContentDocument contentDocument) throws ServiceException {
-        this.withSession(host, keySpace, session -> {
-            contentDocument.rows().stream()
-                    .map(row -> this.buildCql(contentDocument.getName(), row))
-                    .map(cql -> session.execute(cql))
-                    .collect(toList());
         });
         return new RequestResponse();
     }
@@ -98,22 +81,6 @@ public class CassandraService implements ContentService {
         return contentRow.stream()
                 .map(contentCell -> String.valueOf(contentCell.getColumnValue()))
                 .collect(Collectors.joining(","));
-    }
-
-    /**
-     * Build the CQL
-     * @param contentRow
-     * @return
-     */
-
-    protected String buildCql(String contentName, ContentDocument.ContentRow contentRow) {
-        return "INSERT INTO "
-                + contentName
-                + " ("
-                + this.buildHeader(contentRow)
-                + ") VALUES ("
-                + this.buildValues(contentRow)
-                + ")";
     }
 
     /**

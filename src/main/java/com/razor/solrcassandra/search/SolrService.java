@@ -14,8 +14,7 @@ import org.apache.solr.common.SolrInputDocument;
 import spark.utils.StringUtils;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
+import java.util.function.Consumer;
 
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 
@@ -25,8 +24,11 @@ import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
 
 public class SolrService implements SearchService {
 
-    private static String SERVER_URL = "http://localhost:8983/solr";
-    private SolrClient solrClient = null;
+    private final String host;
+
+    public SolrService(String hostUrl) {
+        this.host = hostUrl;
+    }
 
     /**
      * Build SolrQuery from the generic search parameters
@@ -50,29 +52,6 @@ public class SolrService implements SearchService {
     }
 
     /**
-     * Connect
-     * @param searchIndex
-     */
-
-    public void connect(String searchIndex) {
-        this.solrClient = this.buildSolrClient(this.getFullUrl(searchIndex));
-    }
-
-    /**
-     * Disconnect
-     */
-
-    public void disconnect()  {
-        if (!Objects.isNull(this.solrClient)) {
-            try {
-                this.solrClient.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
      * Build a generic SearchResponse from the Solr response
      * @param searchParameters
      * @return
@@ -80,14 +59,18 @@ public class SolrService implements SearchService {
      * @throws SolrServerException
      */
 
-    public SearchResponse query(SearchParameters searchParameters) throws ServiceException {
-        SolrQuery solrQuery = this.buildSearchQuery(searchParameters);
-        try {
-            QueryResponse queryResponse = this.getSolrClient().query(solrQuery);
-            return this.buildQueryResponseConverterInstance().convert(queryResponse);
-        } catch (SolrServerException | IOException e) {
-            throw new ServiceException("Failed to query search index");
-        }
+    public RequestResponse<SearchResponse> query(SearchParameters searchParameters) throws ServiceException {
+        RequestResponse<SearchResponse> response = new RequestResponse<>();
+        this.withClient(this.host, searchParameters.getSearchIndex(), solrClient -> {
+            SolrQuery solrQuery = this.buildSearchQuery(searchParameters);
+            try {
+                QueryResponse queryResponse = solrClient.query(solrQuery);
+                response.setResponseContent(this.buildQueryResponseConverterInstance().convert(queryResponse));
+            } catch (SolrServerException | IOException e) {
+                response.setErrorMessage(e.getMessage());
+            }
+        });
+        return response;
     }
 
     /**
@@ -96,41 +79,34 @@ public class SolrService implements SearchService {
      * @return RequestResponse
      */
 
-    public RequestResponse<ContentDocument> index(ContentDocument contentDocument) throws ServiceException {
+    public RequestResponse<ContentDocument> index(String core, ContentDocument contentDocument) throws ServiceException {
 
         RequestResponse<ContentDocument> requestResponse = new RequestResponse<>();
-
-        if (Objects.isNull(this.getSolrClient())) {
-            throw new SolrClientException("Client not connected");
-        }
-
         requestResponse.setResponseContent(contentDocument);
-        List<SolrInputDocument> solrInputDocuments = this.buildLoadDocumentConverterInstance().convert(contentDocument);
 
-        for (SolrInputDocument inputDocument : solrInputDocuments) {
-            try {
-                this.getSolrClient().add(inputDocument);
-                this.getSolrClient().commit();
-            } catch (SolrServerException | IOException e) {
-                requestResponse.setErrorMessage(e.getMessage());
+        this.withClient(this.host, core, solrClient -> {
+            for (ContentDocument.ContentRow row : contentDocument.rows()) {
+                SolrInputDocument inputDocument = this.buildLoadDocumentConverterInstance().convert(row);
+                try {
+                    solrClient.add(inputDocument);
+                    solrClient.commit();
+                } catch (SolrServerException | IOException e) {
+                    requestResponse.setErrorMessage(e.getMessage());
+                }
             }
-        }
+        });
 
         return requestResponse;
     }
 
-    public SolrClient getSolrClient() { return this.solrClient; }
-
-    public String getServerUrl() {
-        return SERVER_URL;
-    }
-
-    public String getFullUrl(String core) {
-        return String.format("%s/%s", this.getServerUrl(), core);
-    }
-
-    public SolrClient buildSolrClient(String coreUrl) {
-        return new HttpSolrClient(coreUrl);
+    public void withClient(String host, String core, Consumer<SolrClient> usingClient) {
+        String url = String.format("%s/%s", host, core);
+        SolrClient solrClient = new HttpSolrClient(url);
+        usingClient.accept(solrClient);
+        try {
+            solrClient.close();
+        } catch (IOException e) {
+        }
     }
 
     public QueryResponseToSearchResponse buildQueryResponseConverterInstance() {

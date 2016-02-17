@@ -9,8 +9,6 @@ import com.razor.solrcassandra.models.RequestResponse;
  */
 
 public interface SearchService {
-    void connect(String searchIndex);
-    void disconnect();
-    SearchResponse query(SearchParameters searchParameters) throws ServiceException;
-    RequestResponse<ContentDocument> index(ContentDocument indexDocument) throws ServiceException;
+    RequestResponse<SearchResponse> query(SearchParameters searchParameters) throws ServiceException;
+    RequestResponse<ContentDocument> index(String core, ContentDocument contentDocument) throws ServiceException;
 }

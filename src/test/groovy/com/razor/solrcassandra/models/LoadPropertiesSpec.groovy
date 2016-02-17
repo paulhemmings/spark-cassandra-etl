@@ -9,18 +9,22 @@ import spock.lang.Specification
 
 class LoadPropertiesSpec extends Specification {
 
-    def "it should build a column property"() {
+    def "it should store all content load values"() {
         given:
-            def loadProperties = Spy(ContentLoadRequest)
-        when:
-            loadProperties.setColumnDefinitions(["one:true", "two:false"])
-            List<ContentLoadRequest.ColumnProperty> properties = loadProperties.buildColumns()
-        then:
-            properties.size() == 2
-            properties.get(0).getColumnName() == "one"
-            properties.get(0).isColumnQuoted()
+            def loadRequest = Spy(ContentLoadRequest)
 
-            properties.get(1).getColumnName() == "two"
-            !properties.get(1).isColumnQuoted()
+        when:
+            loadRequest.setColumns(["one", "two", "three"])
+            loadRequest.setCsvFileName("filename")
+            loadRequest.setHostName("hostname")
+            loadRequest.setKeySpace("keyspace")
+            loadRequest.setTableName("tablename")
+
+        then:
+            loadRequest.getCsvFileName() == "filename"
+            loadRequest.getColumns().size() == 3
+            loadRequest.getHostName() == "hostname"
+            loadRequest.getKeySpace() == "keyspace"
+            loadRequest.getTableName() == "tablename"
     }
 }

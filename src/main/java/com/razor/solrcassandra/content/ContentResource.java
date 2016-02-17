@@ -9,7 +9,6 @@ import com.razor.solrcassandra.utilities.JsonUtil;
 import spark.Request;
 import spark.Response;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,16 +41,6 @@ public class ContentResource extends BaseResource {
     private void setupEndpoints() {
         post("/content/load", "application/json", this::handleLoadRequest, JsonUtil::toJson);
         get("/content/retrieve", "application/json", this::handleRetrieveRequest, JsonUtil::toJson);
-    }
-
-    /**
-     * Build a ContentRetrieveRequest object from the Spark HTTP request object
-     * @param request
-     * @return
-     */
-
-    private ContentRetrieveRequest buildContentRetrieveRequest(Request request) {
-        return new Gson().fromJson(new Gson().toJson(request.params()), ContentRetrieveRequest.class);
     }
 
     /**

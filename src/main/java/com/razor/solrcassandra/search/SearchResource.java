@@ -62,10 +62,8 @@ public class SearchResource extends BaseResource {
     private RequestResponse handleIndexRequest(Request request, Response response) throws ServiceException {
         response.type("application/json");
         ContentDocument contentDocument = new Gson().fromJson(request.body(), ContentDocument.class);
-        this.searchService.connect(orElse(request.params(":core"),"master"));
-        RequestResponse requestResponse = this.searchService.index(contentDocument);
-        this.searchService.disconnect();
-        return requestResponse;
+        String core = orElse(request.params(":core"),"master");
+        return this.searchService.index(core, contentDocument);
     }
 
     /**
@@ -77,13 +75,10 @@ public class SearchResource extends BaseResource {
      * @throws SolrServerException
      */
 
-    private SearchResponse handleSearchRequest(Request request, Response response) throws ServiceException {
+    private RequestResponse handleSearchRequest(Request request, Response response) throws ServiceException {
         response.type("application/json");
         SearchParameters searchParameters = new RequestToSearchParameters().convert(request);
-        this.searchService.connect(searchParameters.getSearchIndex());
-        SearchResponse searchResponse = this.searchService.query(searchParameters);
-        this.searchService.disconnect();
-        return searchResponse;
+        return this.searchService.query(searchParameters);
     }
 
 }
