@@ -81,9 +81,9 @@ public class SearchResource extends BaseResource {
         response.type("application/json");
         SearchParameters searchParameters = new RequestToSearchParameters().convert(request);
         this.searchService.connect(searchParameters.getSearchIndex());
-        SearchResponse solrResponse = this.searchService.query(searchParameters);
+        SearchResponse searchResponse = this.searchService.query(searchParameters);
         this.searchService.disconnect();
-        return solrResponse;
+        return searchResponse;
     }
 
 }

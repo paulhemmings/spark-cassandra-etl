@@ -5,17 +5,18 @@ import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.load.FileLoaderService;
 import com.razor.solrcassandra.models.RequestResponse;
 import com.razor.solrcassandra.resources.BaseResource;
-import com.razor.solrcassandra.utilities.ExtendedUtils;
 import com.razor.solrcassandra.utilities.JsonUtil;
 import spark.Request;
 import spark.Response;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
-import static spark.Spark.post;
 import static spark.Spark.get;
+import static spark.Spark.post;
 
 /**
  * Created by paul.hemmings on 2/15/16.
@@ -64,28 +65,6 @@ public class ContentResource extends BaseResource {
     }
 
     /**
-     * Build the index document from the Load Properties (spot the obvious future improvement here!!)
-     * @param name
-     * @param columns
-     * @param values
-     * @return
-     */
-
-    private ContentDocument buildContentDocument(String name, List<ContentLoadRequest.ColumnProperty> columns, List<String> values) {
-        ContentDocument contentDocument = new ContentDocument().setName(name);
-        ContentDocument.ContentRow contentRow = contentDocument.createRow();
-
-        int index = 0;
-        for (ContentLoadRequest.ColumnProperty column : columns) {
-            String value = column.isColumnQuoted() ? "'" + values.get(index) + "'" : values.get(index);
-            contentRow.add(column.getColumnName(), value);
-            index ++;
-        }
-        
-        return contentDocument;
-    }
-
-    /**
      *
      * @param request
      * @param response
@@ -94,8 +73,10 @@ public class ContentResource extends BaseResource {
      */
 
     private RequestResponse<ContentDocument> handleRetrieveRequest(Request request, Response response) throws ServiceException {
-        ContentRetrieveRequest retrieveRequest = this.buildContentRetrieveRequest(request);
-        return this.contentService.retrieve(retrieveRequest);
+        String host = request.params("host");
+        String keySpace = request.params("keyspace");
+        Map<String, String> filters = request.params();
+        return this.contentService.retrieve(host, keySpace, filters);
     }
 
     /**
@@ -106,45 +87,24 @@ public class ContentResource extends BaseResource {
      * @throws ServiceException
      */
 
-    private List<RequestResponse<ContentDocument>> handleLoadRequest(Request request, Response response) throws ServiceException {
+    private RequestResponse<ContentDocument> handleLoadRequest(Request request, Response response) throws ServiceException {
 
-        final List<RequestResponse<ContentDocument>> entries = new ArrayList<>();
-
-        // get the index properties
         ContentLoadRequest contentLoadRequest = this.buildContentLoadRequest(request);
+        ContentDocument contentDocument = new ContentDocument();
 
-        // connect to Cassandra
-        this.contentService.connect(contentLoadRequest);
-
-        // index the data.
+        // Build the content document
         new FileLoaderService().loadData(contentLoadRequest.getCsvFileName(), line -> {
-
-            RequestResponse<ContentDocument> requestResponse = new RequestResponse<>();
-
-            // build the content document
-            ContentDocument loadDocument = this.buildContentDocument(
-                    contentLoadRequest.getTableName(),
-                    contentLoadRequest.buildColumns(),
-                    Arrays.asList(line.split(","))
-            );
-
-            // load it into content store
-            try {
-                requestResponse = this.contentService.insert(loadDocument);
-            } catch (ServiceException e) {
-                requestResponse.setErrorMessage(e.getMessage());
-            }
-
-            // add to successful entry
-            entries.add(requestResponse);
-
+            List<String> values = Arrays.asList(line.split(","));
+            IntStream.range(0, values.size()).forEach(index -> {
+                contentDocument.addContentRow(new ContentDocument.ContentRow().add(contentLoadRequest.getColumns().get(index), values.get(index)));
+            });
         });
 
-        // disconnect from Cassandra
-        this.contentService.disconnect();
+        // load the content document
+        this.contentService.insert(contentLoadRequest.getHostName(), contentLoadRequest.getKeySpace(), contentLoadRequest.getTableName(), contentDocument);
 
         // return response
-        return entries;
+        return new RequestResponse<ContentDocument>().setResponseContent(contentDocument);
     }
 
 }

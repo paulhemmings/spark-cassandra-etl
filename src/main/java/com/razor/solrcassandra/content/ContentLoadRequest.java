@@ -11,9 +11,9 @@ public class ContentLoadRequest {
 
     private String hostName;
     private String keySpace;
-
     private String tableName;
-    private List<String> columnDefinitions;
+
+    private List<String> columns;
     private String csvFileName;
 
     public String getHostName() {
@@ -32,47 +32,27 @@ public class ContentLoadRequest {
         return this.csvFileName;
     }
 
-    /*
-     * For testing purposes only.
-     */
-
-    public void setColumnDefinitions(List<String> columnDefinitions) {
-        this.columnDefinitions = columnDefinitions;
+    public List<String> getColumns() {
+        return columns;
     }
 
-    public List<ColumnProperty> buildColumns() {
-        return this.columnDefinitions.stream()
-                .map(this::buildColumnProperty)
-                .collect(Collectors.toList());
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
-    private ColumnProperty buildColumnProperty(String columnDefinition) {
-        String[] parts = columnDefinition.split(":");
-        return new ColumnProperty()
-                .setColumnName(parts[0])
-                .setColumnQuoted(parts[1].equalsIgnoreCase("true"));
+    public void setKeySpace(String keySpace) {
+        this.keySpace = keySpace;
     }
 
-    public static class ColumnProperty {
-        private String columnName;
-        private boolean columnQuoted;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
 
-        public String getColumnName() {
-            return columnName;
-        }
+    public void setColumns(List<String> columns) {
+        this.columns = columns;
+    }
 
-        public boolean isColumnQuoted() {
-            return columnQuoted;
-        }
-
-        public ColumnProperty setColumnName(String columnName) {
-            this.columnName = columnName;
-            return this;
-        }
-
-        public ColumnProperty setColumnQuoted(boolean columnQuoted) {
-            this.columnQuoted = columnQuoted;
-            return this;
-        }
+    public void setCsvFileName(String csvFileName) {
+        this.csvFileName = csvFileName;
     }
 }
