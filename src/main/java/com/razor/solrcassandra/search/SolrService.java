@@ -10,10 +10,14 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.util.NamedList;
 import spark.utils.StringUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
@@ -79,17 +83,19 @@ public class SolrService implements SearchService {
      * @return RequestResponse
      */
 
-    public RequestResponse<ContentDocument> index(String core, ContentDocument contentDocument) throws ServiceException {
+    public RequestResponse<List<NamedList<Object>>> index(String core, ContentDocument contentDocument) throws ServiceException {
 
-        RequestResponse<ContentDocument> requestResponse = new RequestResponse<>();
-        requestResponse.setResponseContent(contentDocument);
+        ContentDocumentToSolrInputDocument converter = this.buildLoadDocumentConverterInstance();
+        RequestResponse<List<NamedList<Object>>> requestResponse = new RequestResponse<>();
+        requestResponse.setResponseContent(new ArrayList<>());
 
-        this.withClient(this.host, core, solrClient -> {
+        this.withClient(this.getHost(), core, solrClient -> {
             for (ContentDocument.ContentRow row : contentDocument.rows()) {
-                SolrInputDocument inputDocument = this.buildLoadDocumentConverterInstance().convert(row);
+                SolrInputDocument inputDocument = converter.convert(row);
                 try {
                     solrClient.add(inputDocument);
-                    solrClient.commit();
+                    UpdateResponse updateResponse = solrClient.commit();
+                    requestResponse.getResponseContent().add(updateResponse.getResponse());
                 } catch (SolrServerException | IOException e) {
                     requestResponse.setErrorMessage(e.getMessage());
                 }
@@ -101,7 +107,7 @@ public class SolrService implements SearchService {
 
     public void withClient(String host, String core, Consumer<SolrClient> usingClient) {
         String url = String.format("%s/%s", host, core);
-        SolrClient solrClient = new HttpSolrClient(url);
+        SolrClient solrClient = this.buildClient(url); // new HttpSolrClient(url);
         usingClient.accept(solrClient);
         try {
             solrClient.close();
@@ -115,6 +121,14 @@ public class SolrService implements SearchService {
 
     public ContentDocumentToSolrInputDocument buildLoadDocumentConverterInstance() {
         return new ContentDocumentToSolrInputDocument();
+    }
+
+    public String getHost() {
+        return this.host;
+    }
+
+    protected SolrClient buildClient(String url) {
+        return new HttpSolrClient(url);
     }
 
 }
