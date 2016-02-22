@@ -5,6 +5,7 @@ import com.razor.solrcassandra.content.ContentLoadRequest;
 import org.apache.solr.common.SolrInputDocument;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -13,9 +14,15 @@ import java.util.stream.Collectors;
 
 public class ContentDocumentToSolrInputDocument {
 
+    public SolrInputDocument convert(final Map<String, Object> row) {
+        SolrInputDocument solrInputDocument = new SolrInputDocument();
+        row.keySet().forEach(key -> solrInputDocument.setField(key, row.get(key)));
+        return solrInputDocument;
+    }
+
     public SolrInputDocument convert(final ContentDocument.ContentRow row) {
         SolrInputDocument solrInputDocument = new SolrInputDocument();
-        row.stream().forEach(cell -> solrInputDocument.setField(cell.getColumnName(), cell.getColumnValue()));
+        row.keySet().forEach(key -> solrInputDocument.setField(key, row.get(key)));
         return solrInputDocument;
     }
 

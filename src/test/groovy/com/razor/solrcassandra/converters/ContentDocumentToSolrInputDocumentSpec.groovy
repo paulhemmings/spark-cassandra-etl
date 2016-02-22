@@ -14,9 +14,9 @@ class ContentDocumentToSolrInputDocumentSpec extends Specification {
             def contentDocument = new ContentDocument()
             def contentRow = contentDocument.createRow()
 
-            contentRow.add("column-one", "value-one")
-            contentRow.add("column-two", "value-two")
-            contentRow.add("column-three", "3")
+            contentRow.put("column-one", "value-one")
+            contentRow.put("column-two", "value-two")
+            contentRow.put("column-three", "3")
 
         when:
             def inputDocuments = converter.convert(contentDocument)

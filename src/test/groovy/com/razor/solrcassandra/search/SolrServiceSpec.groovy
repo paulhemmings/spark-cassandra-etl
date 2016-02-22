@@ -43,7 +43,7 @@ class SolrServiceSpec extends Specification {
             def solrClient = Mock(SolrClient)
             def solrInputDocument = Mock(SolrInputDocument)
             def contentDocument = Mock(ContentDocument)
-            def contentRow = new ContentDocument.ContentRow().add("column", "value")
+            def contentRow = new ContentDocument.ContentRow().put("column", "value")
             def loadDocumentToSolrInputDocument = Mock(ContentDocumentToSolrInputDocument)
             def updateResponse = Mock(UpdateResponse)
 
@@ -53,7 +53,7 @@ class SolrServiceSpec extends Specification {
         then:
             1 * solrService.buildClient(_ as String) >> solrClient
             1 * contentDocument.rows() >> [contentRow]
-            1 * solrService.buildLoadDocumentConverterInstance() >> loadDocumentToSolrInputDocument
+            1 * solrService.buildContentDocumentConverterInstance() >> loadDocumentToSolrInputDocument
             1 * loadDocumentToSolrInputDocument.convert(contentRow) >> solrInputDocument
             1 * solrClient.add(solrInputDocument)
             1 * solrClient.commit() >> updateResponse

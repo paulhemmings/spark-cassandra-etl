@@ -2,6 +2,7 @@ package com.razor.solrcassandra.search;
 
 import com.google.gson.Gson;
 import com.razor.solrcassandra.content.ContentDocument;
+import com.razor.solrcassandra.converters.RequestToContentDocument;
 import com.razor.solrcassandra.converters.RequestToSearchParameters;
 import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.models.RequestResponse;
@@ -38,12 +39,17 @@ public class SearchResource extends BaseResource {
     /**
      * Sets up the service end points
      *
-     * /search
+     * GET /search
      *   Accepts JSON
      *     http://localhost:4567/search/books-core?jq={%27cat%27:[%27book%27]}
      *   Or individual parameters
      *     http://localhost:4567/search/books-core?q=*:*&facets=cat,name,genre_s
      *
+     * POST /search/index/:core
+     *   Accepts JSON in the post body in formats:
+     *      { name:"test-name", contentItems:[{ one:"item", two:"item" }]}
+     *      or
+     *      [{ one:"item", two:"item" }]
      */
 
     private void setupEndpoints() {
@@ -52,7 +58,7 @@ public class SearchResource extends BaseResource {
     }
 
     /**
-     *
+     * Handles the index request
      * @param request
      * @param response
      * @return
@@ -61,7 +67,7 @@ public class SearchResource extends BaseResource {
 
     private RequestResponse handleIndexRequest(Request request, Response response) throws ServiceException {
         response.type("application/json");
-        ContentDocument contentDocument = new Gson().fromJson(request.body(), ContentDocument.class);
+        ContentDocument contentDocument = new RequestToContentDocument().convert(request);
         String core = orElse(request.params(":core"),"master");
         return this.searchService.index(core, contentDocument);
     }
@@ -80,5 +86,4 @@ public class SearchResource extends BaseResource {
         SearchParameters searchParameters = new RequestToSearchParameters().convert(request);
         return this.searchService.query(searchParameters);
     }
-
 }

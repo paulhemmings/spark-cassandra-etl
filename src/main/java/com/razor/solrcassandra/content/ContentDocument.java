@@ -1,8 +1,8 @@
 package com.razor.solrcassandra.content;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import org.omg.CORBA.NameValuePair;
+
+import java.util.*;
 
 /**
  * Created by paul.hemmings on 2/15/16.
@@ -25,8 +25,10 @@ public class ContentDocument {
         return contentRow;
     }
 
-    public ContentDocument addContentRow(ContentRow row) {
-        this.rows().add(row);
+    public ContentDocument addContentRow(String key, Object value) {
+        ContentRow map = new ContentRow();
+        map.put(key, value);
+        this.rows().add(map);
         return this;
     }
 
@@ -39,33 +41,6 @@ public class ContentDocument {
         return this;
     }
 
-    public static class ContentRow extends ArrayList<ContentCell> {
-        public ContentRow add(String name, Object value) {
-            this.add(new ContentCell().setColumnName(name).setColumnValue(value));
-            return this;
-        }
-    }
-
-    public static class ContentCell {
-        private String columnName;
-        private Object columnValue;
-
-        public String getColumnName() {
-            return columnName;
-        }
-
-        public ContentCell setColumnName(String columnName) {
-            this.columnName = columnName;
-            return this;
-        }
-
-        public Object getColumnValue() {
-            return columnValue;
-        }
-
-        public ContentCell setColumnValue(Object columnValue) {
-            this.columnValue = columnValue;
-            return this;
-        }
+    public static class ContentRow extends HashMap<String, Object> {
     }
 }

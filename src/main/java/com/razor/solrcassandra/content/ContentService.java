@@ -11,5 +11,5 @@ import java.util.Map;
 
 public interface ContentService {
     RequestResponse<ContentDocument> insert(String host, String keySpace, String tableName, ContentDocument contentDocument) throws ServiceException;
-    RequestResponse<ContentDocument> retrieve(String host, String keySpace, Map<String, String> filters) throws ServiceException;
+    RequestResponse<ContentDocument> retrieve(String host, String keySpace, String tableName, Map<String, String> filters) throws ServiceException;
 }

@@ -85,7 +85,7 @@ public class SolrService implements SearchService {
 
     public RequestResponse<List<NamedList<Object>>> index(String core, ContentDocument contentDocument) throws ServiceException {
 
-        ContentDocumentToSolrInputDocument converter = this.buildLoadDocumentConverterInstance();
+        ContentDocumentToSolrInputDocument converter = this.buildContentDocumentConverterInstance();
         RequestResponse<List<NamedList<Object>>> requestResponse = new RequestResponse<>();
         requestResponse.setResponseContent(new ArrayList<>());
 
@@ -96,7 +96,7 @@ public class SolrService implements SearchService {
                     solrClient.add(inputDocument);
                     UpdateResponse updateResponse = solrClient.commit();
                     requestResponse.getResponseContent().add(updateResponse.getResponse());
-                } catch (SolrServerException | IOException e) {
+                } catch (SolrServerException | IOException | HttpSolrClient.RemoteSolrException e) {
                     requestResponse.setErrorMessage(e.getMessage());
                 }
             }
@@ -119,7 +119,7 @@ public class SolrService implements SearchService {
         return new QueryResponseToSearchResponse();
     }
 
-    public ContentDocumentToSolrInputDocument buildLoadDocumentConverterInstance() {
+    public ContentDocumentToSolrInputDocument buildContentDocumentConverterInstance() {
         return new ContentDocumentToSolrInputDocument();
     }
 

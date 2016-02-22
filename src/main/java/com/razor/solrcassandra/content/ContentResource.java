@@ -64,8 +64,9 @@ public class ContentResource extends BaseResource {
     private RequestResponse<ContentDocument> handleRetrieveRequest(Request request, Response response) throws ServiceException {
         String host = request.params("host");
         String keySpace = request.params("keyspace");
+        String tableName = request.params("tableName");
         Map<String, String> filters = request.params();
-        return this.contentService.retrieve(host, keySpace, filters);
+        return this.contentService.retrieve(host, keySpace, tableName, filters);
     }
 
     /**
@@ -85,7 +86,7 @@ public class ContentResource extends BaseResource {
         new FileLoaderService().loadData(contentLoadRequest.getCsvFileName(), line -> {
             List<String> values = Arrays.asList(line.split(","));
             IntStream.range(0, values.size()).forEach(index -> {
-                contentDocument.addContentRow(new ContentDocument.ContentRow().add(contentLoadRequest.getColumns().get(index), values.get(index)));
+                contentDocument.addContentRow(contentLoadRequest.getColumns().get(index), values.get(index));
             });
         });
 

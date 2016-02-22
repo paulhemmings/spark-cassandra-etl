@@ -1,0 +1,25 @@
+{
+  "name": "book",
+  "contentItems": [{
+    "id": "123456789",
+    "cat": [
+      "test-book"
+    ],
+    "name": [
+      "test-name"
+    ],
+    "price": [
+      1.99
+    ],
+    "inStock": [
+      true
+    ],
+    "author": [
+      "test-author"
+    ],
+    "series_t": [
+      "test-series"
+    ],
+    "genre_s": "test-genre"
+  }]
+}

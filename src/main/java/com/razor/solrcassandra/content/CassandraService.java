@@ -6,15 +6,16 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.Select;
 import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.models.RequestResponse;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
 /**
  * Created by paulhemmings on 10/19/15.
@@ -51,10 +52,12 @@ public class CassandraService implements ContentService {
      * @throws ServiceException
      */
 
-    public RequestResponse<ContentDocument> retrieve(String host, String keySpace, Map<String, String> filters) throws ServiceException {
+    public RequestResponse<ContentDocument> retrieve(String host, String keySpace, String tableName, Map<String, String> filters) throws ServiceException {
         ContentDocument document = new ContentDocument();
         this.withSession(host, keySpace, session -> {
-
+            BuiltStatement retrieveStatement = this.buildRetrieveStatement(keySpace, tableName, filters);
+            PreparedStatement preparedStatement = session.prepare(retrieveStatement);
+            this.withBound(preparedStatement, filters.values(), session::execute);
         });
         return new RequestResponse<ContentDocument>().setResponseContent(document);
     }
@@ -66,8 +69,8 @@ public class CassandraService implements ContentService {
      */
 
     protected String buildHeader(ContentDocument.ContentRow contentRow) {
-        return contentRow.stream()
-                .map(contentCell -> "\"" + contentCell.getColumnName().toUpperCase() + "\"")
+        return contentRow.keySet().stream()
+                .map(key -> "\"" + key.toUpperCase() + "\"")
                 .collect(Collectors.joining(","));
     }
 
@@ -78,8 +81,8 @@ public class CassandraService implements ContentService {
      */
 
     protected String buildValues(ContentDocument.ContentRow contentRow) {
-        return contentRow.stream()
-                .map(contentCell -> String.valueOf(contentCell.getColumnValue()))
+        return contentRow.values().stream()
+                .map(value -> String.valueOf(value))
                 .collect(Collectors.joining(","));
     }
 
@@ -105,9 +108,21 @@ public class CassandraService implements ContentService {
 
     protected void withBoundRows(PreparedStatement preparedStatement, ContentDocument contentDocument, Consumer<BoundStatement> useStatement) {
         for(ContentDocument.ContentRow row : contentDocument.rows()) {
-            BoundStatement boundStatement = new BoundStatement(preparedStatement).bind(row.stream().map(ContentDocument.ContentCell::getColumnValue));
+            BoundStatement boundStatement = new BoundStatement(preparedStatement).bind(row.values());
             useStatement.accept(boundStatement);
         }
+    }
+
+    /**
+     * Binds a prepared statement with the values
+     * @param preparedStatement
+     * @param values
+     * @param useStatement
+     */
+
+    protected <V> void withBound(PreparedStatement preparedStatement, Collection<V> values, Consumer<BoundStatement> useStatement) {
+        BoundStatement boundStatement = new BoundStatement(preparedStatement).bind(values);
+        useStatement.accept(boundStatement);
     }
 
     /**
@@ -120,10 +135,26 @@ public class CassandraService implements ContentService {
 
     protected BuiltStatement buildInsertStatement(String keySpace, String tableName, ContentDocument contentDocument) {
         Insert insertStatement = insertInto(keySpace, tableName);
-        for(ContentDocument.ContentCell contentCell : contentDocument.rows().get(0)) {
-            insertStatement.value(contentCell.getColumnName(), bindMarker());
-        }
+        contentDocument.rows().get(0).keySet().forEach(key -> {
+            insertStatement.value(key, bindMarker());
+        });
         return insertStatement;
+    }
+
+    /**
+     * Builds a retrieve statement based on the filters
+     * @param keySpace
+     * @param tableName
+     * @param filters
+     * @return
+     */
+
+    protected BuiltStatement buildRetrieveStatement(String keySpace, String tableName, Map<String, String> filters) {
+        Select select = select().from(keySpace, tableName);
+        for (String key : filters.keySet()) {
+            select.where(eq(key, bindMarker()));
+        }
+        return select;
     }
 
 
