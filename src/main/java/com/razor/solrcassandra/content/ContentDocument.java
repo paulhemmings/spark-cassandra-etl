@@ -7,40 +7,18 @@ import java.util.*;
 /**
  * Created by paul.hemmings on 2/15/16.
  */
-public class ContentDocument {
+public class ContentDocument extends ArrayList<Map<String, Object>> {
 
-    private String name;
-    private List<ContentRow> contentItems;
-
-    public List<ContentRow> rows() {
-        if (Objects.isNull(this.contentItems)) {
-            this.contentItems = new ArrayList<>();
-        }
-        return contentItems;
-    }
-
-    public ContentRow createRow() {
-        ContentRow contentRow = new ContentRow();
-        this.rows().add(contentRow);
+    public Map<String, Object> createRow() {
+        Map<String, Object> contentRow = new HashMap<>();
+        this.add(contentRow);
         return contentRow;
     }
 
     public ContentDocument addContentRow(String key, Object value) {
-        ContentRow map = new ContentRow();
+        Map<String, Object> map = new HashMap<>();
         map.put(key, value);
-        this.rows().add(map);
+        this.add(map);
         return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public ContentDocument setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public static class ContentRow extends HashMap<String, Object> {
     }
 }

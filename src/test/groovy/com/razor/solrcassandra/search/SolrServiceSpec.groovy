@@ -17,6 +17,7 @@ class SolrServiceSpec extends Specification {
 
     def "it should query data from the SOLR instance based on provided values"() {
         given:
+            def core = "core"
             def solrService = Spy(SolrService)
             def solrClient = Mock(SolrClient)
             def queryResponse = Mock(QueryResponse)
@@ -26,7 +27,7 @@ class SolrServiceSpec extends Specification {
             def queryResponseConverter = Mock(QueryResponseToSearchResponse)
 
         when:
-            solrService.query(searchParameters)
+            solrService.query(core, searchParameters)
 
         then:
             1 * solrService.buildClient(_ as String) >> solrClient
@@ -42,8 +43,8 @@ class SolrServiceSpec extends Specification {
             def solrService = Spy(SolrService)
             def solrClient = Mock(SolrClient)
             def solrInputDocument = Mock(SolrInputDocument)
-            def contentDocument = Mock(ContentDocument)
-            def contentRow = new ContentDocument.ContentRow().put("column", "value")
+            def contentDocument = new ContentDocument()
+            def contentRow = contentDocument.addContentRow("column", "value")
             def loadDocumentToSolrInputDocument = Mock(ContentDocumentToSolrInputDocument)
             def updateResponse = Mock(UpdateResponse)
 
@@ -52,9 +53,8 @@ class SolrServiceSpec extends Specification {
 
         then:
             1 * solrService.buildClient(_ as String) >> solrClient
-            1 * contentDocument.rows() >> [contentRow]
             1 * solrService.buildContentDocumentConverterInstance() >> loadDocumentToSolrInputDocument
-            1 * loadDocumentToSolrInputDocument.convert(contentRow) >> solrInputDocument
+            1 * loadDocumentToSolrInputDocument.convert(_) >> solrInputDocument
             1 * solrClient.add(solrInputDocument)
             1 * solrClient.commit() >> updateResponse
             noExceptionThrown()

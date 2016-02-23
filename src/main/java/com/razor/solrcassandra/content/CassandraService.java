@@ -13,7 +13,6 @@ import com.razor.solrcassandra.models.RequestResponse;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
@@ -24,9 +23,14 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
 public class CassandraService implements ContentService {
 
+    private final String host;
+
+    public CassandraService(String hostUrl) {
+        this.host = hostUrl;
+    }
+
     /**
      * Insert a document into the store
-     * @param host
      * @param keySpace
      * @param tableName
      * @param contentDocument
@@ -34,7 +38,7 @@ public class CassandraService implements ContentService {
      * @throws ServiceException
      */
 
-    public RequestResponse insert(String host, String keySpace, String tableName, ContentDocument contentDocument) throws ServiceException {
+    public RequestResponse insert(String keySpace, String tableName, ContentDocument contentDocument) throws ServiceException {
         this.withSession(host, keySpace, session -> {
             BuiltStatement insertStatement = this.buildInsertStatement(keySpace, tableName, contentDocument);
             PreparedStatement preparedStatement = session.prepare(insertStatement);
@@ -45,14 +49,13 @@ public class CassandraService implements ContentService {
 
     /**
      * Retrieve Content from the Content Store
-     * @param host
      * @param keySpace
      * @param filters
      * @return
      * @throws ServiceException
      */
 
-    public RequestResponse<ContentDocument> retrieve(String host, String keySpace, String tableName, Map<String, String> filters) throws ServiceException {
+    public RequestResponse<ContentDocument> retrieve(String keySpace, String tableName, Map<String, String> filters) throws ServiceException {
         ContentDocument document = new ContentDocument();
         this.withSession(host, keySpace, session -> {
             BuiltStatement retrieveStatement = this.buildRetrieveStatement(keySpace, tableName, filters);
@@ -60,30 +63,6 @@ public class CassandraService implements ContentService {
             this.withBound(preparedStatement, filters.values(), session::execute);
         });
         return new RequestResponse<ContentDocument>().setResponseContent(document);
-    }
-
-    /**
-     * Build the CQL header row
-     * @param contentRow
-     * @return
-     */
-
-    protected String buildHeader(ContentDocument.ContentRow contentRow) {
-        return contentRow.keySet().stream()
-                .map(key -> "\"" + key.toUpperCase() + "\"")
-                .collect(Collectors.joining(","));
-    }
-
-    /**
-     * Build the CQL values row
-     * @param contentRow
-     * @return
-     */
-
-    protected String buildValues(ContentDocument.ContentRow contentRow) {
-        return contentRow.values().stream()
-                .map(value -> String.valueOf(value))
-                .collect(Collectors.joining(","));
     }
 
     /**
@@ -107,7 +86,7 @@ public class CassandraService implements ContentService {
      */
 
     protected void withBoundRows(PreparedStatement preparedStatement, ContentDocument contentDocument, Consumer<BoundStatement> useStatement) {
-        for(ContentDocument.ContentRow row : contentDocument.rows()) {
+        for(Map<String, Object> row : contentDocument) {
             BoundStatement boundStatement = new BoundStatement(preparedStatement).bind(row.values());
             useStatement.accept(boundStatement);
         }
@@ -135,7 +114,7 @@ public class CassandraService implements ContentService {
 
     protected BuiltStatement buildInsertStatement(String keySpace, String tableName, ContentDocument contentDocument) {
         Insert insertStatement = insertInto(keySpace, tableName);
-        contentDocument.rows().get(0).keySet().forEach(key -> {
+        contentDocument.get(0).keySet().forEach(key -> {
             insertStatement.value(key, bindMarker());
         });
         return insertStatement;

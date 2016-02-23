@@ -24,7 +24,7 @@ public class RequestResponse<T> {
         return errorMessage;
     }
 
-    public RequestResponse setErrorMessage(String errorMessage) {
+    public RequestResponse<T> setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
         return this;
     }

@@ -20,7 +20,7 @@ public class EntryPoint {
         // create the services
 
         SearchService searchService = new SolrService("http://localhost:8983/solr");
-        ContentService contentService = new CassandraService();
+        ContentService contentService = new CassandraService("127.0.0.1");
 
         // create the resources (API service endpoints)
 

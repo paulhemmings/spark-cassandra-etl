@@ -20,13 +20,7 @@ public class ContentDocumentToSolrInputDocument {
         return solrInputDocument;
     }
 
-    public SolrInputDocument convert(final ContentDocument.ContentRow row) {
-        SolrInputDocument solrInputDocument = new SolrInputDocument();
-        row.keySet().forEach(key -> solrInputDocument.setField(key, row.get(key)));
-        return solrInputDocument;
-    }
-
     public List<SolrInputDocument> convert(final ContentDocument document) {
-        return document.rows().stream().map(this::convert).collect(Collectors.toList());
+        return document.stream().map(this::convert).collect(Collectors.toList());
     }
 }

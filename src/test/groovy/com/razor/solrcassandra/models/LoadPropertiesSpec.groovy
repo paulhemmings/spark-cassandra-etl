@@ -14,16 +14,12 @@ class LoadPropertiesSpec extends Specification {
             def loadRequest = Spy(ContentLoadRequest)
 
         when:
-            loadRequest.setColumns(["one", "two", "three"])
             loadRequest.setCsvFileName("filename")
-            loadRequest.setHostName("hostname")
             loadRequest.setKeySpace("keyspace")
             loadRequest.setTableName("tablename")
 
         then:
             loadRequest.getCsvFileName() == "filename"
-            loadRequest.getColumns().size() == 3
-            loadRequest.getHostName() == "hostname"
             loadRequest.getKeySpace() == "keyspace"
             loadRequest.getTableName() == "tablename"
     }

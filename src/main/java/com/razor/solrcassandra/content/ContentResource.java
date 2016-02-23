@@ -1,6 +1,8 @@
 package com.razor.solrcassandra.content;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.razor.solrcassandra.converters.CsvFileToContentDocument;
 import com.razor.solrcassandra.exceptions.ServiceException;
 import com.razor.solrcassandra.load.FileLoaderService;
 import com.razor.solrcassandra.models.RequestResponse;
@@ -8,10 +10,12 @@ import com.razor.solrcassandra.resources.BaseResource;
 import com.razor.solrcassandra.utilities.JsonUtil;
 import spark.Request;
 import spark.Response;
+import spark.utils.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import static spark.Spark.get;
@@ -50,7 +54,11 @@ public class ContentResource extends BaseResource {
      */
 
     private ContentLoadRequest buildContentLoadRequest(Request request) {
-        return new Gson().fromJson(request.body(), ContentLoadRequest.class);
+        try {
+            return new Gson().fromJson(request.body(), ContentLoadRequest.class);
+        } catch (JsonSyntaxException ex) {
+            return null;
+        }
     }
 
     /**
@@ -66,7 +74,7 @@ public class ContentResource extends BaseResource {
         String keySpace = request.params("keyspace");
         String tableName = request.params("tableName");
         Map<String, String> filters = request.params();
-        return this.contentService.retrieve(host, keySpace, tableName, filters);
+        return this.contentService.retrieve(keySpace, tableName, filters);
     }
 
     /**
@@ -78,23 +86,25 @@ public class ContentResource extends BaseResource {
      */
 
     private RequestResponse<ContentDocument> handleLoadRequest(Request request, Response response) throws ServiceException {
-
+        RequestResponse<ContentDocument> requestResponse = new RequestResponse<>();
         ContentLoadRequest contentLoadRequest = this.buildContentLoadRequest(request);
-        ContentDocument contentDocument = new ContentDocument();
 
-        // Build the content document
-        new FileLoaderService().loadData(contentLoadRequest.getCsvFileName(), line -> {
-            List<String> values = Arrays.asList(line.split(","));
-            IntStream.range(0, values.size()).forEach(index -> {
-                contentDocument.addContentRow(contentLoadRequest.getColumns().get(index), values.get(index));
-            });
-        });
+        if (Objects.isNull(contentLoadRequest)) {
+            throw new ServiceException("no valid content load request");
+        }
+
+        if (StringUtils.isEmpty(contentLoadRequest.getCsvFileName())) {
+            throw new ServiceException("only supports CSV files for now");
+        }
+
+        CsvFileToContentDocument csvFileToContentDocument = new CsvFileToContentDocument();
+        ContentDocument contentDocument = csvFileToContentDocument.convert(contentLoadRequest.getCsvFileName(), new FileLoaderService());
 
         // load the content document
-        this.contentService.insert(contentLoadRequest.getHostName(), contentLoadRequest.getKeySpace(), contentLoadRequest.getTableName(), contentDocument);
+        this.contentService.insert(contentLoadRequest.getKeySpace(), contentLoadRequest.getTableName(), contentDocument);
 
         // return response
-        return new RequestResponse<ContentDocument>().setResponseContent(contentDocument);
+        return requestResponse.setResponseContent(contentDocument);
     }
 
 }

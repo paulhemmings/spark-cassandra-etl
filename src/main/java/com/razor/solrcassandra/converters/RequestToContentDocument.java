@@ -36,7 +36,7 @@ public class RequestToContentDocument {
     public ContentDocument convert(List<Map<String, Object>> collection) {
         final ContentDocument contentDocument = new ContentDocument();
         collection.forEach(item -> {
-            ContentDocument.ContentRow row = contentDocument.createRow();
+            Map<String, Object> row = contentDocument.createRow();
             item.keySet().stream().forEach(key -> row.put(key, item.get(key)));
         });
         return contentDocument;

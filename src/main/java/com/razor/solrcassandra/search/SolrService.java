@@ -18,6 +18,7 @@ import spark.utils.StringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.razor.solrcassandra.utilities.ExtendedUtils.orElse;
@@ -63,9 +64,9 @@ public class SolrService implements SearchService {
      * @throws SolrServerException
      */
 
-    public RequestResponse<SearchResponse> query(SearchParameters searchParameters) throws ServiceException {
+    public RequestResponse<SearchResponse> query(String core, SearchParameters searchParameters) throws ServiceException {
         RequestResponse<SearchResponse> response = new RequestResponse<>();
-        this.withClient(this.host, searchParameters.getSearchIndex(), solrClient -> {
+        this.withClient(this.host, core, solrClient -> {
             SolrQuery solrQuery = this.buildSearchQuery(searchParameters);
             try {
                 QueryResponse queryResponse = solrClient.query(solrQuery);
@@ -90,7 +91,7 @@ public class SolrService implements SearchService {
         requestResponse.setResponseContent(new ArrayList<>());
 
         this.withClient(this.getHost(), core, solrClient -> {
-            for (ContentDocument.ContentRow row : contentDocument.rows()) {
+            for (Map<String, Object> row : contentDocument) {
                 SolrInputDocument inputDocument = converter.convert(row);
                 try {
                     solrClient.add(inputDocument);

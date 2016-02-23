@@ -11,6 +11,7 @@ import com.razor.solrcassandra.utilities.JsonUtil;
 import org.apache.solr.client.solrj.SolrServerException;
 import spark.Request;
 import spark.Response;
+import spark.utils.StringUtils;
 
 import java.io.IOException;
 
@@ -45,12 +46,12 @@ public class SearchResource extends BaseResource {
      *   Or individual parameters
      *     http://localhost:4567/search/books-core?q=*:*&facets=cat,name,genre_s
      *
+     * Index a new document inside SOLR.
+     *
      * POST /search/index/:core
-     *   Accepts JSON in the post body in formats:
-     *      { name:"test-name", contentItems:[{ one:"item", two:"item" }]}
-     *      or
      *      [{ one:"item", two:"item" }]
      */
+
 
     private void setupEndpoints() {
         get("/search/:core", "application/json", this::handleSearchRequest, JsonUtil::toJson);
@@ -67,8 +68,13 @@ public class SearchResource extends BaseResource {
 
     private RequestResponse handleIndexRequest(Request request, Response response) throws ServiceException {
         response.type("application/json");
+
+        String core = request.params(":core");
+        if (StringUtils.isEmpty(core)) {
+            throw new ServiceException("Failed to provide an index core for the document");
+        }
+
         ContentDocument contentDocument = new RequestToContentDocument().convert(request);
-        String core = orElse(request.params(":core"),"master");
         return this.searchService.index(core, contentDocument);
     }
 
@@ -83,7 +89,13 @@ public class SearchResource extends BaseResource {
 
     private RequestResponse handleSearchRequest(Request request, Response response) throws ServiceException {
         response.type("application/json");
+
+        String core = request.params(":core");
+        if (StringUtils.isEmpty(core)) {
+            throw new ServiceException("Failed to provide an index core for the document");
+        }
+
         SearchParameters searchParameters = new RequestToSearchParameters().convert(request);
-        return this.searchService.query(searchParameters);
+        return this.searchService.query(core, searchParameters);
     }
 }
