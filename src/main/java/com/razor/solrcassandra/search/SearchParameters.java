@@ -1,7 +1,7 @@
 package com.razor.solrcassandra.search;
 
 import com.razor.solrcassandra.utilities.ExtendedUtils;
-import spark.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,8 +58,8 @@ public class SearchParameters {
         return this;
     }
 
-    public String getRows() {
-        return rows;
+    public Integer getRows() {
+        return StringUtils.isNumeric(rows) ? Integer.parseInt(rows) : null;
     }
 
     public SearchParameters setRows(String rows) {
@@ -112,8 +112,8 @@ public class SearchParameters {
         return this;
     }
 
-    public String getFacetLimit() {
-        return facetLimit;
+    public Integer getFacetLimit() {
+        return StringUtils.isNumeric(facetLimit) ? Integer.valueOf(facetLimit) : null;
     }
 
     public SearchParameters setFacetLimit(String facetLimit) {

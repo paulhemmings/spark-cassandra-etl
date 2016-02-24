@@ -42,7 +42,9 @@ public class CassandraService implements ContentService {
         this.withSession(host, keySpace, session -> {
             BuiltStatement insertStatement = this.buildInsertStatement(keySpace, tableName, contentDocument);
             PreparedStatement preparedStatement = session.prepare(insertStatement);
-            this.withBoundRows(preparedStatement, contentDocument, session::execute);
+            for(Map<String, Object> row : contentDocument) {
+                this.withBound(preparedStatement, row.values(), session::execute);
+            }
         });
         return new RequestResponse();
     }
@@ -79,20 +81,6 @@ public class CassandraService implements ContentService {
     }
 
     /**
-     * Takes a prepared statement. Binds that statement to each row within the content document. Returns the bound statement for that row
-     * @param preparedStatement
-     * @param contentDocument
-     * @param useStatement
-     */
-
-    protected void withBoundRows(PreparedStatement preparedStatement, ContentDocument contentDocument, Consumer<BoundStatement> useStatement) {
-        for(Map<String, Object> row : contentDocument) {
-            BoundStatement boundStatement = new BoundStatement(preparedStatement).bind(row.values());
-            useStatement.accept(boundStatement);
-        }
-    }
-
-    /**
      * Binds a prepared statement with the values
      * @param preparedStatement
      * @param values
@@ -100,7 +88,7 @@ public class CassandraService implements ContentService {
      */
 
     protected <V> void withBound(PreparedStatement preparedStatement, Collection<V> values, Consumer<BoundStatement> useStatement) {
-        BoundStatement boundStatement = new BoundStatement(preparedStatement).bind(values);
+        BoundStatement boundStatement = new BoundStatement(preparedStatement).bind(values.toArray());
         useStatement.accept(boundStatement);
     }
 
