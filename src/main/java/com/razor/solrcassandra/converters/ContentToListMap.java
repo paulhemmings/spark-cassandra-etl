@@ -29,4 +29,36 @@ public class ContentToListMap {
         return null;
     }
 
+    public List<Map<String, Object>> reduce(List<Map<String, Object>>  fullMap, List<String> columnMapping) {
+        if (CollectionUtils.isEmpty(fullMap)) {
+            return fullMap;
+        }
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Map<String, Object> mapItem : fullMap) {
+            Map<String, Object> map = new HashMap<>();
+            for (String mapping : columnMapping) {
+                String source = mapping.split(":")[0];
+                String target = mapping.split(":")[1];
+                map.put(target, this.getSource(mapItem, source));
+            }
+            list.add(map);
+        }
+        return list;
+    }
+
+    public Object getSource(Map<String, Object> mapItem, String source) {
+        if (!source.contains(".")) {
+            return mapItem.get(source);
+        }
+        Object leaf = mapItem;
+        String[] parts = source.split("\\.");
+
+        for (String part : parts) {
+            if (leaf instanceof LinkedTreeMap) {
+                leaf = ((LinkedTreeMap)leaf).get(part);
+            }
+        }
+        return leaf;
+    }    
+
 }

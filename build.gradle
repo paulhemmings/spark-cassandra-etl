@@ -3,10 +3,13 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'application'
 apply plugin: 'net.saliman.cobertura'
+apply plugin: 'maven'
 
 /* define main class */
 
 mainClassName = 'com.razor.solrcassandra.EntryPoint'
+group = 'com.razor.solrcassandra'
+version = '0.1-SNAPSHOT'
 
 /* Provide repositories */
 
