@@ -2,11 +2,15 @@ package com.razor.solrcassandra.converters;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import spark.utils.CollectionUtils;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 /**
  * Created by paul.hemmings on 2/23/16.
